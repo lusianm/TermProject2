@@ -1,0 +1,673 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V8.50.9.278/W32 for ARM         21/Dec/2020  20:19:43
+# Copyright 1999-2020 IAR Systems AB.
+#
+#    Cpu mode             
+#    Endian            =  little
+#    Source file       =  D:\Programming\TermProject2\user\stm32f10x_HC-SR04.c
+#    Command line      =
+#        -f C:\Users\ziop2\AppData\Local\Temp\EWE502.tmp
+#        (D:\Programming\TermProject2\user\stm32f10x_HC-SR04.c -D
+#        USE_STDPERIPH_DRIVER -D STM32F10X_CL -lC
+#        D:\Programming\TermProject2\Debug\List -o
+#        D:\Programming\TermProject2\Debug\Obj --no_cse --no_unroll --no_inline
+#        --no_code_motion --no_tbaa --no_clustering --no_scheduling --debug
+#        --endian=little --cpu=Cortex-M3 -e --fpu=None --dlib_config
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\inc\c\DLib_Config_Normal.h" -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\Startup\\ -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\\ -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\\
+#        -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\src\\
+#        -I D:\Programming\TermProject2\user\\ -I
+#        D:\Programming\TermProject2\user\inc\\ -Ol -I "C:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench 8.4\arm\CMSIS\Core\Include\\" -I
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\CMSIS\DSP\Include\\")
+#    Locale            =  C
+#    List file         =
+#        D:\Programming\TermProject2\Debug\List\stm32f10x_HC-SR04.lst
+#    Object file       =
+#        D:\Programming\TermProject2\Debug\Obj\stm32f10x_HC-SR04.o
+#    Runtime model:       
+#      __SystemLibrary =  DLib
+#      __dlib_version  =  6
+#      __size_limit    =  32768|ARM.EW.LINKER
+#
+###############################################################################
+
+D:\Programming\TermProject2\user\stm32f10x_HC-SR04.c
+      1          #include <stm32f10x_HC-SR04.h>
+      2          
+      3          #define LCD_DIST_VAL_X 20
+      4          #define LCD_DIST_VAL_Y 70
+      5          
+      6          #define LCD_Cap1_VAL_X 20
+      7          #define LCD_Cap1_VAL_Y 90
+      8          
+      9          #define LCD_Cap2_VAL_X 20
+     10          #define LCD_Cap2_VAL_Y 110
+     11          
+
+   \                                 In section .bss, align 4
+     12          int32_t * EchoDistance1;
+   \                     EchoDistance1:
+   \        0x0                      DS8 4
+
+   \                                 In section .bss, align 4
+     13          int32_t * EchoDistance2;
+   \                     EchoDistance2:
+   \        0x0                      DS8 4
+     14          
+     15          
+     16          
+     17          
+     18          extern void EnableHCSR04PeriphClock();
+     19          
+     20          /*
+     21          void NVIC_Configure(void) {
+     22          
+     23              NVIC_InitTypeDef NVIC_InitStructure;
+     24              // TODO: fill the arg you want
+     25              NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+     26          
+     27              NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn; // 5
+     28              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // TODO
+     29              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // TODO
+     30              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+     31              NVIC_Init(&NVIC_InitStructure);
+     32              
+     33              NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn; // 5
+     34              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // TODO
+     35              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // TODO
+     36              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+     37              NVIC_Init(&NVIC_InitStructure);
+     38          }
+     39          */
+
+   \                                 In section .text, align 2, keep-with-next
+     40          static void initMeasureTimer() {
+   \                     initMeasureTimer: (+1)
+   \        0x0   0xB578             PUSH     {R3-R6,LR}
+   \        0x2   0xB08F             SUB      SP,SP,#+60
+     41          	RCC_ClocksTypeDef RCC_ClocksStatus;
+     42          	RCC_GetClocksFreq(&RCC_ClocksStatus);
+   \        0x4   0xA80A             ADD      R0,SP,#+40
+   \        0x6   0x....'....        BL       RCC_GetClocksFreq
+     43          	uint16_t prescaler = RCC_ClocksStatus.SYSCLK_Frequency / 1000000 - 1; //1 tick = 1us (1 tick = 0.165mm resolution)
+   \        0xA   0x980A             LDR      R0,[SP, #+40]
+   \        0xC   0x....             LDR.N    R1,??DataTable6  ;; 0xf4240
+   \        0xE   0xFBB0 0xF0F1      UDIV     R0,R0,R1
+   \       0x12   0x1E45             SUBS     R5,R0,#+1
+     44          
+     45          	TIM_DeInit(US1_TIMER);
+   \       0x14   0x....             LDR.N    R4,??DataTable6_1  ;; 0x40000400
+   \       0x16   0x0020             MOVS     R0,R4
+   \       0x18   0x....'....        BL       TIM_DeInit
+     46          	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
+     47          	TIM_TimeBaseInitStruct.TIM_Prescaler = prescaler;
+   \       0x1C   0xF8AD 0x5000      STRH     R5,[SP, #+0]
+     48          	TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
+   \       0x20   0x2000             MOVS     R0,#+0
+   \       0x22   0xF8AD 0x0002      STRH     R0,[SP, #+2]
+     49          	TIM_TimeBaseInitStruct.TIM_Period = 0xFFFF;
+   \       0x26   0xF64F 0x76FF      MOVW     R6,#+65535
+   \       0x2A   0xF8AD 0x6004      STRH     R6,[SP, #+4]
+     50          	TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+   \       0x2E   0x2000             MOVS     R0,#+0
+   \       0x30   0xF8AD 0x0006      STRH     R0,[SP, #+6]
+     51          	TIM_TimeBaseInit(US1_TIMER, &TIM_TimeBaseInitStruct);
+   \       0x34   0x4669             MOV      R1,SP
+   \       0x36   0x0020             MOVS     R0,R4
+   \       0x38   0x....'....        BL       TIM_TimeBaseInit
+     52                  
+     53          	TIM_DeInit(US2_TIMER);
+   \       0x3C   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x40   0x....'....        BL       TIM_DeInit
+     54          	TIM_TimeBaseInitStruct.TIM_Prescaler = prescaler;
+   \       0x44   0xF8AD 0x5000      STRH     R5,[SP, #+0]
+     55          	TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
+   \       0x48   0x2000             MOVS     R0,#+0
+   \       0x4A   0xF8AD 0x0002      STRH     R0,[SP, #+2]
+     56          	TIM_TimeBaseInitStruct.TIM_Period = 0xFFFF;
+   \       0x4E   0xF8AD 0x6004      STRH     R6,[SP, #+4]
+     57          	TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+   \       0x52   0x2000             MOVS     R0,#+0
+   \       0x54   0xF8AD 0x0006      STRH     R0,[SP, #+6]
+     58          	TIM_TimeBaseInit(US2_TIMER, &TIM_TimeBaseInitStruct);
+   \       0x58   0x4669             MOV      R1,SP
+   \       0x5A   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x5E   0x....'....        BL       TIM_TimeBaseInit
+     59          
+     60          	TIM_OCInitTypeDef TIM_OCInitStruct;
+     61          	TIM_OCStructInit(&TIM_OCInitStruct);
+   \       0x62   0xA803             ADD      R0,SP,#+12
+   \       0x64   0x....'....        BL       TIM_OCStructInit
+     62          	TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
+   \       0x68   0x2060             MOVS     R0,#+96
+   \       0x6A   0xF8AD 0x000C      STRH     R0,[SP, #+12]
+     63          	TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
+   \       0x6E   0x2001             MOVS     R0,#+1
+   \       0x70   0xF8AD 0x000E      STRH     R0,[SP, #+14]
+     64          	TIM_OCInitStruct.TIM_Pulse = 15; //us
+   \       0x74   0x200F             MOVS     R0,#+15
+   \       0x76   0xF8AD 0x0012      STRH     R0,[SP, #+18]
+     65          	TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
+   \       0x7A   0x2000             MOVS     R0,#+0
+   \       0x7C   0xF8AD 0x0014      STRH     R0,[SP, #+20]
+     66          	TIM_OC3Init(US1_TIMER, &TIM_OCInitStruct);
+   \       0x80   0xA903             ADD      R1,SP,#+12
+   \       0x82   0x0020             MOVS     R0,R4
+   \       0x84   0x....'....        BL       TIM_OC3Init
+     67          
+     68          	TIM_OCStructInit(&TIM_OCInitStruct);
+   \       0x88   0xA803             ADD      R0,SP,#+12
+   \       0x8A   0x....'....        BL       TIM_OCStructInit
+     69          	TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
+   \       0x8E   0x2060             MOVS     R0,#+96
+   \       0x90   0xF8AD 0x000C      STRH     R0,[SP, #+12]
+     70          	TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
+   \       0x94   0x2001             MOVS     R0,#+1
+   \       0x96   0xF8AD 0x000E      STRH     R0,[SP, #+14]
+     71          	TIM_OCInitStruct.TIM_Pulse = 15; //us
+   \       0x9A   0x200F             MOVS     R0,#+15
+   \       0x9C   0xF8AD 0x0012      STRH     R0,[SP, #+18]
+     72          	TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
+   \       0xA0   0x2000             MOVS     R0,#+0
+   \       0xA2   0xF8AD 0x0014      STRH     R0,[SP, #+20]
+     73          	TIM_OC3Init(US2_TIMER, &TIM_OCInitStruct);
+   \       0xA6   0xA903             ADD      R1,SP,#+12
+   \       0xA8   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0xAC   0x....'....        BL       TIM_OC3Init
+     74                  
+     75          	TIM_ICInitTypeDef TIM_ICInitStruct;
+     76          	TIM_ICInitStruct.TIM_Channel = TIM_Channel_1;
+   \       0xB0   0x2000             MOVS     R0,#+0
+   \       0xB2   0xF8AD 0x001C      STRH     R0,[SP, #+28]
+     77          	TIM_ICInitStruct.TIM_ICPolarity = TIM_ICPolarity_Rising;
+   \       0xB6   0x2000             MOVS     R0,#+0
+   \       0xB8   0xF8AD 0x001E      STRH     R0,[SP, #+30]
+     78          	TIM_ICInitStruct.TIM_ICSelection = TIM_ICSelection_DirectTI;
+   \       0xBC   0x2001             MOVS     R0,#+1
+   \       0xBE   0xF8AD 0x0020      STRH     R0,[SP, #+32]
+     79          	TIM_ICInitStruct.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+   \       0xC2   0x2000             MOVS     R0,#+0
+   \       0xC4   0xF8AD 0x0022      STRH     R0,[SP, #+34]
+     80          	TIM_ICInitStruct.TIM_ICFilter = 0;      
+   \       0xC8   0x2000             MOVS     R0,#+0
+   \       0xCA   0xF8AD 0x0024      STRH     R0,[SP, #+36]
+     81          
+     82          	TIM_PWMIConfig(US1_TIMER, &TIM_ICInitStruct);
+   \       0xCE   0xA907             ADD      R1,SP,#+28
+   \       0xD0   0x0020             MOVS     R0,R4
+   \       0xD2   0x....'....        BL       TIM_PWMIConfig
+     83          	TIM_PWMIConfig(US2_TIMER, &TIM_ICInitStruct);
+   \       0xD6   0xA907             ADD      R1,SP,#+28
+   \       0xD8   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0xDC   0x....'....        BL       TIM_PWMIConfig
+     84                  
+     85          	TIM_SelectInputTrigger(US1_TIMER, US1_TIMER_TRIG_SOURCE);
+   \       0xE0   0x2150             MOVS     R1,#+80
+   \       0xE2   0x0020             MOVS     R0,R4
+   \       0xE4   0x....'....        BL       TIM_SelectInputTrigger
+     86          	TIM_SelectMasterSlaveMode(US1_TIMER, TIM_MasterSlaveMode_Enable);
+   \       0xE8   0x2180             MOVS     R1,#+128
+   \       0xEA   0x0020             MOVS     R0,R4
+   \       0xEC   0x....'....        BL       TIM_SelectMasterSlaveMode
+     87          	TIM_CtrlPWMOutputs(US1_TIMER, ENABLE);
+   \       0xF0   0x2101             MOVS     R1,#+1
+   \       0xF2   0x0020             MOVS     R0,R4
+   \       0xF4   0x....'....        BL       TIM_CtrlPWMOutputs
+     88          	TIM_ClearFlag(US1_TIMER, TIM_FLAG_Update);
+   \       0xF8   0x2101             MOVS     R1,#+1
+   \       0xFA   0x0020             MOVS     R0,R4
+   \       0xFC   0x....'....        BL       TIM_ClearFlag
+     89                  
+     90          	TIM_SelectInputTrigger(US2_TIMER, US2_TIMER_TRIG_SOURCE);
+   \      0x100   0x2150             MOVS     R1,#+80
+   \      0x102   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \      0x106   0x....'....        BL       TIM_SelectInputTrigger
+     91          	TIM_SelectMasterSlaveMode(US2_TIMER, TIM_MasterSlaveMode_Enable);
+   \      0x10A   0x2180             MOVS     R1,#+128
+   \      0x10C   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \      0x110   0x....'....        BL       TIM_SelectMasterSlaveMode
+     92          	TIM_CtrlPWMOutputs(US2_TIMER, ENABLE);
+   \      0x114   0x2101             MOVS     R1,#+1
+   \      0x116   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \      0x11A   0x....'....        BL       TIM_CtrlPWMOutputs
+     93          	TIM_ClearFlag(US2_TIMER, TIM_FLAG_Update);
+   \      0x11E   0x2101             MOVS     R1,#+1
+   \      0x120   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \      0x124   0x....'....        BL       TIM_ClearFlag
+     94          }
+   \      0x128   0xB010             ADD      SP,SP,#+64
+   \      0x12A   0xBD70             POP      {R4-R6,PC}       ;; return
+     95          
+
+   \                                 In section .text, align 2, keep-with-next
+     96          void EXTI_Configure(void)
+     97          {
+   \                     EXTI_Configure: (+1)
+   \        0x0   0xB5E0             PUSH     {R5-R7,LR}
+     98              EXTI_InitTypeDef EXTI_InitStructure;
+     99          
+    100              // TODO: Select the GPIO pin (Joystick, button) used as EXTI Line using function 'GPIO_EXTILineConfig'
+    101              // TODO: Initialize the EXTI using the structure 'EXTI_InitTypeDef' and the function 'EXTI_Init'
+    102          
+    103              /* Button */
+    104              GPIO_EXTILineConfig(US1_ECHO_Interrupt_PORT, US1_ECHO_Interrupt_PIN);
+   \        0x2   0x2106             MOVS     R1,#+6
+   \        0x4   0x2000             MOVS     R0,#+0
+   \        0x6   0x....'....        BL       GPIO_EXTILineConfig
+    105              //@  EXTI Line : 6
+    106              EXTI_InitStructure.EXTI_Line = US1_ECHO_Interrupt_EXTI_LINE;
+   \        0xA   0x2040             MOVS     R0,#+64
+   \        0xC   0x9000             STR      R0,[SP, #+0]
+    107              //@  EXTI Mode : Interrupt
+    108              EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+   \        0xE   0x2000             MOVS     R0,#+0
+   \       0x10   0xF88D 0x0004      STRB     R0,[SP, #+4]
+    109              //@ Interrupt Trigger : Falling
+    110              EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+   \       0x14   0x200C             MOVS     R0,#+12
+   \       0x16   0xF88D 0x0005      STRB     R0,[SP, #+5]
+    111              EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+   \       0x1A   0x2001             MOVS     R0,#+1
+   \       0x1C   0xF88D 0x0006      STRB     R0,[SP, #+6]
+    112              EXTI_Init(&EXTI_InitStructure);
+   \       0x20   0x4668             MOV      R0,SP
+   \       0x22   0x....'....        BL       EXTI_Init
+    113              // NOTE: do not select the UART GPIO pin used as EXTI Line here
+    114              
+    115              /* Button */
+    116              GPIO_EXTILineConfig(US2_ECHO_Interrupt_PORT, US2_ECHO_Interrupt_PIN);
+   \       0x26   0x2100             MOVS     R1,#+0
+   \       0x28   0x2000             MOVS     R0,#+0
+   \       0x2A   0x....'....        BL       GPIO_EXTILineConfig
+    117              //@  EXTI Line : 6
+    118              EXTI_InitStructure.EXTI_Line = US2_ECHO_Interrupt_EXTI_LINE;
+   \       0x2E   0x2001             MOVS     R0,#+1
+   \       0x30   0x9000             STR      R0,[SP, #+0]
+    119              //@  EXTI Mode : Interrupt
+    120              EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+   \       0x32   0x2000             MOVS     R0,#+0
+   \       0x34   0xF88D 0x0004      STRB     R0,[SP, #+4]
+    121              //@ Interrupt Trigger : Falling
+    122              EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+   \       0x38   0x200C             MOVS     R0,#+12
+   \       0x3A   0xF88D 0x0005      STRB     R0,[SP, #+5]
+    123              EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+   \       0x3E   0x2001             MOVS     R0,#+1
+   \       0x40   0xF88D 0x0006      STRB     R0,[SP, #+6]
+    124              EXTI_Init(&EXTI_InitStructure);
+   \       0x44   0x4668             MOV      R0,SP
+   \       0x46   0x....'....        BL       EXTI_Init
+    125              // NOTE: do not select the UART GPIO pin used as EXTI Line here
+    126          }
+   \       0x4A   0xBD07             POP      {R0-R2,PC}       ;; return
+    127          
+
+   \                                 In section .text, align 2, keep-with-next
+    128          static void initPins() {
+   \                     initPins: (+1)
+   \        0x0   0xB51C             PUSH     {R2-R4,LR}
+    129          	GPIO_InitTypeDef GPIO_InitStructure;
+    130          	GPIO_InitStructure.GPIO_Pin = US1_TRIG_PIN;
+   \        0x2   0x2001             MOVS     R0,#+1
+   \        0x4   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+    131          	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \        0x8   0x2003             MOVS     R0,#+3
+   \        0xA   0xF88D 0x0002      STRB     R0,[SP, #+2]
+    132          	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+   \        0xE   0x2018             MOVS     R0,#+24
+   \       0x10   0xF88D 0x0003      STRB     R0,[SP, #+3]
+    133          	GPIO_Init(US1_TRIG_PORT, &GPIO_InitStructure);
+   \       0x14   0x4669             MOV      R1,SP
+   \       0x16   0x....             LDR.N    R0,??DataTable6_2  ;; 0x40010c00
+   \       0x18   0x....'....        BL       GPIO_Init
+    134          
+    135          	GPIO_InitStructure.GPIO_Pin = US1_ECHO_PIN;
+   \       0x1C   0x2040             MOVS     R0,#+64
+   \       0x1E   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+    136          	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x22   0x2003             MOVS     R0,#+3
+   \       0x24   0xF88D 0x0002      STRB     R0,[SP, #+2]
+    137          	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+   \       0x28   0x2004             MOVS     R0,#+4
+   \       0x2A   0xF88D 0x0003      STRB     R0,[SP, #+3]
+    138          	GPIO_Init(US1_ECHO_PORT, &GPIO_InitStructure);
+   \       0x2E   0x....             LDR.N    R4,??DataTable6_3  ;; 0x40010800
+   \       0x30   0x4669             MOV      R1,SP
+   \       0x32   0x0020             MOVS     R0,R4
+   \       0x34   0x....'....        BL       GPIO_Init
+    139                  
+    140                  
+    141          	GPIO_InitStructure.GPIO_Pin = US2_TRIG_PIN;
+   \       0x38   0x2004             MOVS     R0,#+4
+   \       0x3A   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+    142          	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x3E   0x2003             MOVS     R0,#+3
+   \       0x40   0xF88D 0x0002      STRB     R0,[SP, #+2]
+    143          	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+   \       0x44   0x2018             MOVS     R0,#+24
+   \       0x46   0xF88D 0x0003      STRB     R0,[SP, #+3]
+    144          	GPIO_Init(US2_TRIG_PORT, &GPIO_InitStructure);
+   \       0x4A   0x4669             MOV      R1,SP
+   \       0x4C   0x0020             MOVS     R0,R4
+   \       0x4E   0x....'....        BL       GPIO_Init
+    145          
+    146          	GPIO_InitStructure.GPIO_Pin = US2_ECHO_PIN;
+   \       0x52   0x2001             MOVS     R0,#+1
+   \       0x54   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+    147          	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x58   0x2003             MOVS     R0,#+3
+   \       0x5A   0xF88D 0x0002      STRB     R0,[SP, #+2]
+    148          	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+   \       0x5E   0x2004             MOVS     R0,#+4
+   \       0x60   0xF88D 0x0003      STRB     R0,[SP, #+3]
+    149          	GPIO_Init(US2_ECHO_PORT, &GPIO_InitStructure);
+   \       0x64   0x4669             MOV      R1,SP
+   \       0x66   0x0020             MOVS     R0,R4
+   \       0x68   0x....'....        BL       GPIO_Init
+    150          }
+   \       0x6C   0xBD13             POP      {R0,R1,R4,PC}    ;; return
+    151          
+
+   \                                 In section .text, align 2, keep-with-next
+    152          void InitHCSR04(int32_t * d1, int32_t * d2) {
+   \                     InitHCSR04: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    153                  EchoDistance1 = d1;
+   \        0x2   0x....             LDR.N    R2,??DataTable6_4
+   \        0x4   0x6010             STR      R0,[R2, #+0]
+    154                  EchoDistance2 = d2;
+   \        0x6   0x....             LDR.N    R0,??DataTable6_5
+   \        0x8   0x6001             STR      R1,[R0, #+0]
+    155          	EnableHCSR04PeriphClock();
+   \        0xA   0x....'....        BL       EnableHCSR04PeriphClock
+    156          	initPins();
+   \        0xE   0x....'....        BL       initPins
+    157          	initMeasureTimer();
+   \       0x12   0x....'....        BL       initMeasureTimer
+    158                  EXTI_Configure();
+   \       0x16   0x....'....        BL       EXTI_Configure
+    159                  //NVIC_Configure();
+    160          }
+   \       0x1A   0xBD01             POP      {R0,PC}          ;; return
+    161          
+    162          //@ Joystick Up Interrupt
+
+   \                                 In section .text, align 2, keep-with-next
+    163          void EXTI9_5_IRQHandler() { // Joystick Up
+   \                     EXTI9_5_IRQHandler: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    164          
+    165              if (EXTI_GetITStatus(US1_ECHO_Interrupt_EXTI_LINE) != RESET) {
+   \        0x2   0x2040             MOVS     R0,#+64
+   \        0x4   0x....'....        BL       EXTI_GetITStatus
+   \        0x8   0x2800             CMP      R0,#+0
+   \        0xA   0xD00D             BEQ.N    ??EXTI9_5_IRQHandler_0
+    166                  if (GPIO_ReadInputDataBit(US1_ECHO_PORT, US1_ECHO_PIN) == Bit_RESET) {
+   \        0xC   0x2140             MOVS     R1,#+64
+   \        0xE   0x....             LDR.N    R0,??DataTable6_3  ;; 0x40010800
+   \       0x10   0x....'....        BL       GPIO_ReadInputDataBit
+   \       0x14   0x2800             CMP      R0,#+0
+   \       0x16   0xD104             BNE.N    ??EXTI9_5_IRQHandler_1
+    167                    *EchoDistance1 = HCSR04GetDistance1();
+   \       0x18   0x....'....        BL       HCSR04GetDistance1
+   \       0x1C   0x....             LDR.N    R1,??DataTable6_4
+   \       0x1E   0x6809             LDR      R1,[R1, #+0]
+   \       0x20   0x6008             STR      R0,[R1, #+0]
+    168                  }
+    169                  EXTI_ClearITPendingBit(US1_ECHO_Interrupt_EXTI_LINE);
+   \                     ??EXTI9_5_IRQHandler_1: (+1)
+   \       0x22   0x2040             MOVS     R0,#+64
+   \       0x24   0x....'....        BL       EXTI_ClearITPendingBit
+    170              }
+    171          }
+   \                     ??EXTI9_5_IRQHandler_0: (+1)
+   \       0x28   0xBD01             POP      {R0,PC}          ;; return
+    172          
+    173          //@ Joystick Up Interrupt
+
+   \                                 In section .text, align 2, keep-with-next
+    174          void EXTI0_IRQHandler() { // Joystick Up
+   \                     EXTI0_IRQHandler: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    175          
+    176              if (EXTI_GetITStatus(US2_ECHO_Interrupt_EXTI_LINE) != RESET) {
+   \        0x2   0x2001             MOVS     R0,#+1
+   \        0x4   0x....'....        BL       EXTI_GetITStatus
+   \        0x8   0x2800             CMP      R0,#+0
+   \        0xA   0xD00D             BEQ.N    ??EXTI0_IRQHandler_0
+    177                  if (GPIO_ReadInputDataBit(US2_ECHO_PORT, US2_ECHO_PIN) == Bit_RESET) {
+   \        0xC   0x2101             MOVS     R1,#+1
+   \        0xE   0x....             LDR.N    R0,??DataTable6_3  ;; 0x40010800
+   \       0x10   0x....'....        BL       GPIO_ReadInputDataBit
+   \       0x14   0x2800             CMP      R0,#+0
+   \       0x16   0xD104             BNE.N    ??EXTI0_IRQHandler_1
+    178                    *EchoDistance2 = HCSR04GetDistance2();
+   \       0x18   0x....'....        BL       HCSR04GetDistance2
+   \       0x1C   0x....             LDR.N    R1,??DataTable6_5
+   \       0x1E   0x6809             LDR      R1,[R1, #+0]
+   \       0x20   0x6008             STR      R0,[R1, #+0]
+    179                  }
+    180                  EXTI_ClearITPendingBit(US2_ECHO_Interrupt_EXTI_LINE);
+   \                     ??EXTI0_IRQHandler_1: (+1)
+   \       0x22   0x2001             MOVS     R0,#+1
+   \       0x24   0x....'....        BL       EXTI_ClearITPendingBit
+    181              }
+    182          }
+   \                     ??EXTI0_IRQHandler_0: (+1)
+   \       0x28   0xBD01             POP      {R0,PC}          ;; return
+    183          
+
+   \                                 In section .text, align 2, keep-with-next
+    184          int32_t HCSR04GetDistance1() {
+   \                     HCSR04GetDistance1: (+1)
+   \        0x0   0xB538             PUSH     {R3-R5,LR}
+    185          	(US1_TIMER)->CNT = 0;
+   \        0x2   0x2000             MOVS     R0,#+0
+   \        0x4   0x....             LDR.N    R1,??DataTable6_6  ;; 0x40000424
+   \        0x6   0x8008             STRH     R0,[R1, #+0]
+    186          	TIM_Cmd(US1_TIMER, ENABLE);
+   \        0x8   0x....             LDR.N    R4,??DataTable6_1  ;; 0x40000400
+   \        0xA   0x2101             MOVS     R1,#+1
+   \        0xC   0x0020             MOVS     R0,R4
+   \        0xE   0x....'....        BL       TIM_Cmd
+    187          	while(!TIM_GetFlagStatus(US1_TIMER, TIM_FLAG_Update));
+   \                     ??HCSR04GetDistance1_0: (+1)
+   \       0x12   0x2101             MOVS     R1,#+1
+   \       0x14   0x0020             MOVS     R0,R4
+   \       0x16   0x....'....        BL       TIM_GetFlagStatus
+   \       0x1A   0x2800             CMP      R0,#+0
+   \       0x1C   0xD0F9             BEQ.N    ??HCSR04GetDistance1_0
+    188          	// TIM_Cmd(US1_TIMER, DISABLE);
+    189          	TIM_ClearFlag(US1_TIMER, TIM_FLAG_Update);
+   \       0x1E   0x2101             MOVS     R1,#+1
+   \       0x20   0x0020             MOVS     R0,R4
+   \       0x22   0x....'....        BL       TIM_ClearFlag
+    190                  int32_t Cap1 = TIM_GetCapture1(US1_TIMER);
+   \       0x26   0x0020             MOVS     R0,R4
+   \       0x28   0x....'....        BL       TIM_GetCapture1
+   \       0x2C   0x0005             MOVS     R5,R0
+    191                  int32_t Cap2 = TIM_GetCapture2(US1_TIMER);
+   \       0x2E   0x0020             MOVS     R0,R4
+   \       0x30   0x....'....        BL       TIM_GetCapture2
+    192                  int32_t dist = (Cap2-Cap1)*165/1000;
+   \       0x34   0x1B45             SUBS     R5,R0,R5
+   \       0x36   0x20A5             MOVS     R0,#+165
+   \       0x38   0x4345             MULS     R5,R0,R5
+   \       0x3A   0xF44F 0x707A      MOV      R0,#+1000
+   \       0x3E   0xFB95 0xF0F0      SDIV     R0,R5,R0
+    193                  /*
+    194                  LCD_ShowNum(LCD_DIST_VAL_X, LCD_DIST_VAL_Y, dist, 4, BLACK, WHITE);
+    195                  LCD_ShowNum(LCD_Cap1_VAL_X, LCD_Cap1_VAL_Y, Cap1, 4, BLACK, WHITE);
+    196                  LCD_ShowNum(LCD_Cap2_VAL_X, LCD_Cap2_VAL_Y, Cap2, 4, BLACK, WHITE);
+    197                  */
+    198          	return dist;
+   \       0x42   0xBD32             POP      {R1,R4,R5,PC}    ;; return
+    199          }
+    200          
+
+   \                                 In section .text, align 2, keep-with-next
+    201          int32_t HCSR04GetDistance2() {
+   \                     HCSR04GetDistance2: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+    202          	(US2_TIMER)->CNT = 0;
+   \        0x2   0x2000             MOVS     R0,#+0
+   \        0x4   0x....             LDR.N    R1,??DataTable6_7  ;; 0x40000024
+   \        0x6   0x8008             STRH     R0,[R1, #+0]
+    203          	TIM_Cmd(US2_TIMER, ENABLE);
+   \        0x8   0x2101             MOVS     R1,#+1
+   \        0xA   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \        0xE   0x....'....        BL       TIM_Cmd
+    204          	while(!TIM_GetFlagStatus(US2_TIMER, TIM_FLAG_Update));
+   \                     ??HCSR04GetDistance2_0: (+1)
+   \       0x12   0x2101             MOVS     R1,#+1
+   \       0x14   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x18   0x....'....        BL       TIM_GetFlagStatus
+   \       0x1C   0x2800             CMP      R0,#+0
+   \       0x1E   0xD0F8             BEQ.N    ??HCSR04GetDistance2_0
+    205          	// TIM_Cmd(US1_TIMER, DISABLE);
+    206          	TIM_ClearFlag(US2_TIMER, TIM_FLAG_Update);
+   \       0x20   0x2101             MOVS     R1,#+1
+   \       0x22   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x26   0x....'....        BL       TIM_ClearFlag
+    207                  int32_t Cap1 = TIM_GetCapture1(US2_TIMER);
+   \       0x2A   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x2E   0x....'....        BL       TIM_GetCapture1
+   \       0x32   0x0004             MOVS     R4,R0
+    208                  int32_t Cap2 = TIM_GetCapture2(US2_TIMER);
+   \       0x34   0xF05F 0x4080      MOVS     R0,#+1073741824
+   \       0x38   0x....'....        BL       TIM_GetCapture2
+    209                  int32_t dist = (Cap2-Cap1)*165/1000;
+   \       0x3C   0x1B04             SUBS     R4,R0,R4
+   \       0x3E   0x20A5             MOVS     R0,#+165
+   \       0x40   0x4344             MULS     R4,R0,R4
+   \       0x42   0xF44F 0x707A      MOV      R0,#+1000
+   \       0x46   0xFB94 0xF0F0      SDIV     R0,R4,R0
+    210                  /*
+    211                  LCD_ShowNum(LCD_DIST_VAL_X, LCD_DIST_VAL_Y, dist, 4, BLACK, WHITE);
+    212                  LCD_ShowNum(LCD_Cap1_VAL_X, LCD_Cap1_VAL_Y, Cap1, 4, BLACK, WHITE);
+    213                  LCD_ShowNum(LCD_Cap2_VAL_X, LCD_Cap2_VAL_Y, Cap2, 4, BLACK, WHITE);
+    214                  */
+    215          	return dist;
+   \       0x4A   0xBD10             POP      {R4,PC}          ;; return
+    216          }
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6:
+   \        0x0   0x000F'4240        DC32     0xf4240
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_1:
+   \        0x0   0x4000'0400        DC32     0x40000400
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_2:
+   \        0x0   0x4001'0C00        DC32     0x40010c00
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_3:
+   \        0x0   0x4001'0800        DC32     0x40010800
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_4:
+   \        0x0   0x....'....        DC32     EchoDistance1
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_5:
+   \        0x0   0x....'....        DC32     EchoDistance2
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_6:
+   \        0x0   0x4000'0424        DC32     0x40000424
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable6_7:
+   \        0x0   0x4000'0024        DC32     0x40000024
+
+   Maximum stack usage in bytes:
+
+   .cstack Function
+   ------- --------
+       8   EXTI0_IRQHandler
+         8   -> EXTI_ClearITPendingBit
+         8   -> EXTI_GetITStatus
+         8   -> GPIO_ReadInputDataBit
+         8   -> HCSR04GetDistance2
+       8   EXTI9_5_IRQHandler
+         8   -> EXTI_ClearITPendingBit
+         8   -> EXTI_GetITStatus
+         8   -> GPIO_ReadInputDataBit
+         8   -> HCSR04GetDistance1
+      16   EXTI_Configure
+        16   -> EXTI_Init
+        16   -> GPIO_EXTILineConfig
+      16   HCSR04GetDistance1
+        16   -> TIM_ClearFlag
+        16   -> TIM_Cmd
+        16   -> TIM_GetCapture1
+        16   -> TIM_GetCapture2
+        16   -> TIM_GetFlagStatus
+       8   HCSR04GetDistance2
+         8   -> TIM_ClearFlag
+         8   -> TIM_Cmd
+         8   -> TIM_GetCapture1
+         8   -> TIM_GetCapture2
+         8   -> TIM_GetFlagStatus
+       8   InitHCSR04
+         8   -> EXTI_Configure
+         8   -> EnableHCSR04PeriphClock
+         8   -> initMeasureTimer
+         8   -> initPins
+      80   initMeasureTimer
+        80   -> RCC_GetClocksFreq
+        80   -> TIM_ClearFlag
+        80   -> TIM_CtrlPWMOutputs
+        80   -> TIM_DeInit
+        80   -> TIM_OC3Init
+        80   -> TIM_OCStructInit
+        80   -> TIM_PWMIConfig
+        80   -> TIM_SelectInputTrigger
+        80   -> TIM_SelectMasterSlaveMode
+        80   -> TIM_TimeBaseInit
+      16   initPins
+        16   -> GPIO_Init
+
+
+   Section sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ??DataTable6
+       4  ??DataTable6_1
+       4  ??DataTable6_2
+       4  ??DataTable6_3
+       4  ??DataTable6_4
+       4  ??DataTable6_5
+       4  ??DataTable6_6
+       4  ??DataTable6_7
+      42  EXTI0_IRQHandler
+      42  EXTI9_5_IRQHandler
+      76  EXTI_Configure
+       4  EchoDistance1
+       4  EchoDistance2
+      68  HCSR04GetDistance1
+      76  HCSR04GetDistance2
+      28  InitHCSR04
+     300  initMeasureTimer
+     110  initPins
+
+ 
+   8 bytes in section .bss
+ 774 bytes in section .text
+ 
+ 774 bytes of CODE memory
+   8 bytes of DATA memory
+
+Errors: none
+Warnings: none

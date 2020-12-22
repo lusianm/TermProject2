@@ -1,0 +1,473 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V8.50.9.278/W32 for ARM         21/Dec/2020  20:19:39
+# Copyright 1999-2020 IAR Systems AB.
+#
+#    Cpu mode             
+#    Endian            =  little
+#    Source file       =  D:\Programming\TermProject2\user\L298N.c
+#    Command line      =
+#        -f C:\Users\ziop2\AppData\Local\Temp\EWD7A3.tmp
+#        (D:\Programming\TermProject2\user\L298N.c -D USE_STDPERIPH_DRIVER -D
+#        STM32F10X_CL -lC D:\Programming\TermProject2\Debug\List -o
+#        D:\Programming\TermProject2\Debug\Obj --no_cse --no_unroll --no_inline
+#        --no_code_motion --no_tbaa --no_clustering --no_scheduling --debug
+#        --endian=little --cpu=Cortex-M3 -e --fpu=None --dlib_config
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\inc\c\DLib_Config_Normal.h" -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\Startup\\ -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\\ -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\\
+#        -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\src\\
+#        -I D:\Programming\TermProject2\user\\ -I
+#        D:\Programming\TermProject2\user\inc\\ -Ol -I "C:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench 8.4\arm\CMSIS\Core\Include\\" -I
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\CMSIS\DSP\Include\\")
+#    Locale            =  C
+#    List file         =  D:\Programming\TermProject2\Debug\List\L298N.lst
+#    Object file       =  D:\Programming\TermProject2\Debug\Obj\L298N.o
+#    Runtime model:       
+#      __SystemLibrary =  DLib
+#      __dlib_version  =  6
+#      __size_limit    =  32768|ARM.EW.LINKER
+#
+###############################################################################
+
+D:\Programming\TermProject2\user\L298N.c
+      1          #include "L298N.h"
+      2          #include "stm32f10x.h"
+      3          
+      4          
+      5          
+
+   \                                 In section .data, align 4
+      6          volatile int MoterPulse = MoterPeriod;
+   \                     MoterPulse:
+   \        0x0   0x0000'2710        DC32 10'000
+      7          
+      8          
+
+   \                                 In section .text, align 2, keep-with-next
+      9          void MoterSetSpeed(double speed){
+   \                     MoterSetSpeed: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+   \        0x2   0x0002             MOVS     R2,R0
+   \        0x4   0x000B             MOVS     R3,R1
+     10            MoterPulse = (int)(MoterPeriod * speed);
+   \        0x6   0x2000             MOVS     R0,#+0
+   \        0x8   0x....             LDR.N    R1,??DataTable7  ;; 0x40c38800
+   \        0xA   0x....'....        BL       __aeabi_dmul
+   \        0xE   0x....'....        BL       __aeabi_d2iz
+   \       0x12   0x....             LDR.N    R1,??DataTable7_1
+   \       0x14   0x6008             STR      R0,[R1, #+0]
+     11            TIM_Init();
+   \       0x16   0x....'....        BL       TIM_Init
+     12          }
+   \       0x1A   0xBD01             POP      {R0,PC}          ;; return
+     13          
+
+   \                                 In section .text, align 2, keep-with-next
+     14          void TIM_Init(){
+   \                     TIM_Init: (+1)
+   \        0x0   0xB538             PUSH     {R3-R5,LR}
+   \        0x2   0xB08C             SUB      SP,SP,#+48
+     15            RCC_ClocksTypeDef RCC_ClocksStatus;
+     16            RCC_GetClocksFreq(&RCC_ClocksStatus);
+   \        0x4   0xA807             ADD      R0,SP,#+28
+   \        0x6   0x....'....        BL       RCC_GetClocksFreq
+     17            uint16_t prescaler = RCC_ClocksStatus.SYSCLK_Frequency / 1000000 - 1; //1 tick = 1us (1 tick = 0.165mm resolution)
+   \        0xA   0x9807             LDR      R0,[SP, #+28]
+   \        0xC   0x....             LDR.N    R1,??DataTable7_2  ;; 0xf4240
+   \        0xE   0xFBB0 0xF0F1      UDIV     R0,R0,R1
+   \       0x12   0x1E44             SUBS     R4,R0,#+1
+     18            TIM_DeInit(MoterTIM);
+   \       0x14   0x....             LDR.N    R5,??DataTable7_3  ;; 0x40000800
+   \       0x16   0x0028             MOVS     R0,R5
+   \       0x18   0x....'....        BL       TIM_DeInit
+     19            
+     20            TIM_TimeBaseInitTypeDef TIM_TimeBase;
+     21            TIM_TimeBase.TIM_Period = (MoterPeriod -1);  //0.1ms
+   \       0x1C   0xF242 0x700F      MOVW     R0,#+9999
+   \       0x20   0xF8AD 0x0004      STRH     R0,[SP, #+4]
+     22            TIM_TimeBase.TIM_Prescaler = prescaler;
+   \       0x24   0xF8AD 0x4000      STRH     R4,[SP, #+0]
+     23            //Clock Division : /1
+     24            TIM_TimeBase.TIM_ClockDivision = 0;  
+   \       0x28   0x2000             MOVS     R0,#+0
+   \       0x2A   0xF8AD 0x0006      STRH     R0,[SP, #+6]
+     25            //Clock Count When Rising Edge
+     26            TIM_TimeBase.TIM_CounterMode = TIM_CounterMode_Up;
+   \       0x2E   0x2000             MOVS     R0,#+0
+   \       0x30   0xF8AD 0x0002      STRH     R0,[SP, #+2]
+     27            
+     28            //Init TIM5
+     29            TIM_TimeBaseInit(MoterTIM, &TIM_TimeBase);
+   \       0x34   0x4669             MOV      R1,SP
+   \       0x36   0x0028             MOVS     R0,R5
+   \       0x38   0x....'....        BL       TIM_TimeBaseInit
+     30            
+     31            
+     32            TIM_OCInitTypeDef TIM_OCInitStruct;
+     33            TIM_OCStructInit(&TIM_OCInitStruct);
+   \       0x3C   0xA803             ADD      R0,SP,#+12
+   \       0x3E   0x....'....        BL       TIM_OCStructInit
+     34            TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
+   \       0x42   0x2060             MOVS     R0,#+96
+   \       0x44   0xF8AD 0x000C      STRH     R0,[SP, #+12]
+     35            TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
+   \       0x48   0x2001             MOVS     R0,#+1
+   \       0x4A   0xF8AD 0x000E      STRH     R0,[SP, #+14]
+     36            TIM_OCInitStruct.TIM_Pulse = MoterPulse; //us
+   \       0x4E   0x....             LDR.N    R0,??DataTable7_1
+   \       0x50   0x6800             LDR      R0,[R0, #+0]
+   \       0x52   0xF8AD 0x0012      STRH     R0,[SP, #+18]
+     37            TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
+   \       0x56   0x2000             MOVS     R0,#+0
+   \       0x58   0xF8AD 0x0014      STRH     R0,[SP, #+20]
+     38            TIM_OC3Init(MoterTIM, &TIM_OCInitStruct);
+   \       0x5C   0xA903             ADD      R1,SP,#+12
+   \       0x5E   0x0028             MOVS     R0,R5
+   \       0x60   0x....'....        BL       TIM_OC3Init
+     39            
+     40            //Set TIM5 prescaler
+     41            TIM_PrescalerConfig(MoterTIM, prescaler, TIM_PSCReloadMode_Immediate);
+   \       0x64   0x2201             MOVS     R2,#+1
+   \       0x66   0x0021             MOVS     R1,R4
+   \       0x68   0xB289             UXTH     R1,R1            ;; ZeroExt  R1,R1,#+16,#+16
+   \       0x6A   0x0028             MOVS     R0,R5
+   \       0x6C   0x....'....        BL       TIM_PrescalerConfig
+     42            
+     43            TIM_SelectMasterSlaveMode(MoterTIM, TIM_MasterSlaveMode_Enable);
+   \       0x70   0x2180             MOVS     R1,#+128
+   \       0x72   0x0028             MOVS     R0,R5
+   \       0x74   0x....'....        BL       TIM_SelectMasterSlaveMode
+     44            TIM_CtrlPWMOutputs(MoterTIM, ENABLE);
+   \       0x78   0x2101             MOVS     R1,#+1
+   \       0x7A   0x0028             MOVS     R0,R5
+   \       0x7C   0x....'....        BL       TIM_CtrlPWMOutputs
+     45            TIM_ClearFlag(MoterTIM, TIM_FLAG_Update);
+   \       0x80   0x2101             MOVS     R1,#+1
+   \       0x82   0x0028             MOVS     R0,R5
+   \       0x84   0x....'....        BL       TIM_ClearFlag
+     46            
+     47          }
+   \       0x88   0xB00D             ADD      SP,SP,#+52
+   \       0x8A   0xBD30             POP      {R4,R5,PC}       ;; return
+     48          
+     49          
+
+   \                                 In section .text, align 2, keep-with-next
+     50          static void InitPins() {
+   \                     InitPins: (+1)
+   \        0x0   0xB51C             PUSH     {R2-R4,LR}
+     51            GPIO_InitTypeDef GPIO_InitStructure;
+     52            GPIO_InitStructure.GPIO_Pin = MoterPWMPin;
+   \        0x2   0xF44F 0x7080      MOV      R0,#+256
+   \        0x6   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+     53            GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \        0xA   0x2003             MOVS     R0,#+3
+   \        0xC   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     54            GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;       
+   \       0x10   0x2018             MOVS     R0,#+24
+   \       0x12   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     55            GPIO_Init(MoterPWMPort, &GPIO_InitStructure);
+   \       0x16   0x4669             MOV      R1,SP
+   \       0x18   0x....             LDR.N    R0,??DataTable7_4  ;; 0x40010c00
+   \       0x1A   0x....'....        BL       GPIO_Init
+     56                  
+     57             GPIO_InitStructure.GPIO_Pin = MotorPin1;
+   \       0x1E   0x2004             MOVS     R0,#+4
+   \       0x20   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+     58             GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x24   0x2003             MOVS     R0,#+3
+   \       0x26   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     59             GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;
+   \       0x2A   0x2010             MOVS     R0,#+16
+   \       0x2C   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     60             GPIO_Init(MotorPort, &GPIO_InitStructure);
+   \       0x30   0x....             LDR.N    R4,??DataTable7_5  ;; 0x40011400
+   \       0x32   0x4669             MOV      R1,SP
+   \       0x34   0x0020             MOVS     R0,R4
+   \       0x36   0x....'....        BL       GPIO_Init
+     61             
+     62             GPIO_InitStructure.GPIO_Pin = MotorPin2;
+   \       0x3A   0x2008             MOVS     R0,#+8
+   \       0x3C   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+     63             GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x40   0x2003             MOVS     R0,#+3
+   \       0x42   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     64             GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;
+   \       0x46   0x2010             MOVS     R0,#+16
+   \       0x48   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     65             GPIO_Init(MotorPort, &GPIO_InitStructure);
+   \       0x4C   0x4669             MOV      R1,SP
+   \       0x4E   0x0020             MOVS     R0,R4
+   \       0x50   0x....'....        BL       GPIO_Init
+     66             
+     67             GPIO_InitStructure.GPIO_Pin = MotorPin3;
+   \       0x54   0x2010             MOVS     R0,#+16
+   \       0x56   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+     68             GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x5A   0x2003             MOVS     R0,#+3
+   \       0x5C   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     69             GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;
+   \       0x60   0x2010             MOVS     R0,#+16
+   \       0x62   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     70             GPIO_Init(MotorPort, &GPIO_InitStructure);
+   \       0x66   0x4669             MOV      R1,SP
+   \       0x68   0x0020             MOVS     R0,R4
+   \       0x6A   0x....'....        BL       GPIO_Init
+     71             
+     72             GPIO_InitStructure.GPIO_Pin = MotorPin4;
+   \       0x6E   0x2080             MOVS     R0,#+128
+   \       0x70   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+     73             GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x74   0x2003             MOVS     R0,#+3
+   \       0x76   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     74             GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;
+   \       0x7A   0x2010             MOVS     R0,#+16
+   \       0x7C   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     75             GPIO_Init(MotorPort, &GPIO_InitStructure);
+   \       0x80   0x4669             MOV      R1,SP
+   \       0x82   0x0020             MOVS     R0,R4
+   \       0x84   0x....'....        BL       GPIO_Init
+     76          }
+   \       0x88   0xBD13             POP      {R0,R1,R4,PC}    ;; return
+     77          
+     78          
+
+   \                                 In section .text, align 2, keep-with-next
+     79          void MoterDelay(){
+     80            for(int i = 0; i < 10000; i++) {}
+   \                     MoterDelay: (+1)
+   \        0x0   0x2000             MOVS     R0,#+0
+   \        0x2   0xE000             B.N      ??MoterDelay_0
+   \                     ??MoterDelay_1: (+1)
+   \        0x4   0x1C40             ADDS     R0,R0,#+1
+   \                     ??MoterDelay_0: (+1)
+   \        0x6   0xF242 0x7110      MOVW     R1,#+10000
+   \        0xA   0x4288             CMP      R0,R1
+   \        0xC   0xDBFA             BLT.N    ??MoterDelay_1
+     81          }
+   \        0xE   0x4770             BX       LR               ;; return
+     82          
+
+   \                                 In section .text, align 2, keep-with-next
+     83          void Moterforward()
+     84          {
+   \                     Moterforward: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+     85            GPIO_SetBits(MotorPort, MotorPin1 | MotorPin3);
+   \        0x2   0x....             LDR.N    R4,??DataTable7_5  ;; 0x40011400
+   \        0x4   0x2114             MOVS     R1,#+20
+   \        0x6   0x0020             MOVS     R0,R4
+   \        0x8   0x....'....        BL       GPIO_SetBits
+     86            MoterDelay();  
+   \        0xC   0x....'....        BL       MoterDelay
+     87            GPIO_ResetBits(MotorPort, MotorPin2 | MotorPin4);
+   \       0x10   0x2188             MOVS     R1,#+136
+   \       0x12   0x0020             MOVS     R0,R4
+   \       0x14   0x....'....        BL       GPIO_ResetBits
+     88            MoterDelay();  
+   \       0x18   0x....'....        BL       MoterDelay
+     89          }
+   \       0x1C   0xBD10             POP      {R4,PC}          ;; return
+     90          
+
+   \                                 In section .text, align 2, keep-with-next
+     91          void Moterback()
+     92          {
+   \                     Moterback: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+     93            GPIO_SetBits(MotorPort, MotorPin2 | MotorPin4);
+   \        0x2   0x....             LDR.N    R4,??DataTable7_5  ;; 0x40011400
+   \        0x4   0x2188             MOVS     R1,#+136
+   \        0x6   0x0020             MOVS     R0,R4
+   \        0x8   0x....'....        BL       GPIO_SetBits
+     94            MoterDelay();  
+   \        0xC   0x....'....        BL       MoterDelay
+     95            GPIO_ResetBits(MotorPort, MotorPin1 | MotorPin3);
+   \       0x10   0x2114             MOVS     R1,#+20
+   \       0x12   0x0020             MOVS     R0,R4
+   \       0x14   0x....'....        BL       GPIO_ResetBits
+     96            MoterDelay();
+   \       0x18   0x....'....        BL       MoterDelay
+     97          }
+   \       0x1C   0xBD10             POP      {R4,PC}          ;; return
+     98          
+
+   \                                 In section .text, align 2, keep-with-next
+     99          void Moterright()
+    100          {
+   \                     Moterright: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+    101            GPIO_SetBits(MotorPort, MotorPin2 | MotorPin3);
+   \        0x2   0x....             LDR.N    R4,??DataTable7_5  ;; 0x40011400
+   \        0x4   0x2118             MOVS     R1,#+24
+   \        0x6   0x0020             MOVS     R0,R4
+   \        0x8   0x....'....        BL       GPIO_SetBits
+    102            MoterDelay();  
+   \        0xC   0x....'....        BL       MoterDelay
+    103            GPIO_ResetBits(MotorPort, MotorPin1 | MotorPin4);
+   \       0x10   0x2184             MOVS     R1,#+132
+   \       0x12   0x0020             MOVS     R0,R4
+   \       0x14   0x....'....        BL       GPIO_ResetBits
+    104            MoterDelay();  
+   \       0x18   0x....'....        BL       MoterDelay
+    105          }
+   \       0x1C   0xBD10             POP      {R4,PC}          ;; return
+    106          
+
+   \                                 In section .text, align 2, keep-with-next
+    107          void Moterleft()
+    108          {
+   \                     Moterleft: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+    109            GPIO_SetBits(MotorPort, MotorPin1 | MotorPin4);
+   \        0x2   0x....             LDR.N    R4,??DataTable7_5  ;; 0x40011400
+   \        0x4   0x2184             MOVS     R1,#+132
+   \        0x6   0x0020             MOVS     R0,R4
+   \        0x8   0x....'....        BL       GPIO_SetBits
+    110            MoterDelay();  
+   \        0xC   0x....'....        BL       MoterDelay
+    111            GPIO_ResetBits(MotorPort, MotorPin2 | MotorPin3);
+   \       0x10   0x2118             MOVS     R1,#+24
+   \       0x12   0x0020             MOVS     R0,R4
+   \       0x14   0x....'....        BL       GPIO_ResetBits
+    112            MoterDelay();  
+   \       0x18   0x....'....        BL       MoterDelay
+    113          }
+   \       0x1C   0xBD10             POP      {R4,PC}          ;; return
+    114          
+
+   \                                 In section .text, align 2, keep-with-next
+    115          void Moterstop()
+    116          {
+   \                     Moterstop: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    117            GPIO_ResetBits(MotorPort, MotorPin1| MotorPin2 | MotorPin3 | MotorPin4);
+   \        0x2   0x219C             MOVS     R1,#+156
+   \        0x4   0x....             LDR.N    R0,??DataTable7_5  ;; 0x40011400
+   \        0x6   0x....'....        BL       GPIO_ResetBits
+    118            MoterDelay();  
+   \        0xA   0x....'....        BL       MoterDelay
+    119          }
+   \        0xE   0xBD01             POP      {R0,PC}          ;; return
+    120          
+
+   \                                 In section .text, align 2, keep-with-next
+    121          void L298NInit(){
+   \                     L298NInit: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    122            InitPins();  
+   \        0x2   0x....'....        BL       InitPins
+    123            TIM_Init();
+   \        0x6   0x....'....        BL       TIM_Init
+    124            Moterstop();
+   \        0xA   0x....'....        BL       Moterstop
+    125          }
+   \        0xE   0xBD01             POP      {R0,PC}          ;; return
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7:
+   \        0x0   0x40C3'8800        DC32     0x40c38800
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7_1:
+   \        0x0   0x....'....        DC32     MoterPulse
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7_2:
+   \        0x0   0x000F'4240        DC32     0xf4240
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7_3:
+   \        0x0   0x4000'0800        DC32     0x40000800
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7_4:
+   \        0x0   0x4001'0C00        DC32     0x40010c00
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable7_5:
+   \        0x0   0x4001'1400        DC32     0x40011400
+
+   Maximum stack usage in bytes:
+
+   .cstack Function
+   ------- --------
+      16   InitPins
+        16   -> GPIO_Init
+       8   L298NInit
+         8   -> InitPins
+         8   -> Moterstop
+         8   -> TIM_Init
+       0   MoterDelay
+       8   MoterSetSpeed
+         8   -> TIM_Init
+         8   -> __aeabi_d2iz
+         8   -> __aeabi_dmul
+       8   Moterback
+         8   -> GPIO_ResetBits
+         8   -> GPIO_SetBits
+         8   -> MoterDelay
+       8   Moterforward
+         8   -> GPIO_ResetBits
+         8   -> GPIO_SetBits
+         8   -> MoterDelay
+       8   Moterleft
+         8   -> GPIO_ResetBits
+         8   -> GPIO_SetBits
+         8   -> MoterDelay
+       8   Moterright
+         8   -> GPIO_ResetBits
+         8   -> GPIO_SetBits
+         8   -> MoterDelay
+       8   Moterstop
+         8   -> GPIO_ResetBits
+         8   -> MoterDelay
+      64   TIM_Init
+        64   -> RCC_GetClocksFreq
+        64   -> TIM_ClearFlag
+        64   -> TIM_CtrlPWMOutputs
+        64   -> TIM_DeInit
+        64   -> TIM_OC3Init
+        64   -> TIM_OCStructInit
+        64   -> TIM_PrescalerConfig
+        64   -> TIM_SelectMasterSlaveMode
+        64   -> TIM_TimeBaseInit
+
+
+   Section sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ??DataTable7
+       4  ??DataTable7_1
+       4  ??DataTable7_2
+       4  ??DataTable7_3
+       4  ??DataTable7_4
+       4  ??DataTable7_5
+     138  InitPins
+      16  L298NInit
+      16  MoterDelay
+       4  MoterPulse
+      28  MoterSetSpeed
+      30  Moterback
+      30  Moterforward
+      30  Moterleft
+      30  Moterright
+      16  Moterstop
+     140  TIM_Init
+
+ 
+   4 bytes in section .data
+ 498 bytes in section .text
+ 
+ 498 bytes of CODE memory
+   4 bytes of DATA memory
+
+Errors: none
+Warnings: none

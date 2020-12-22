@@ -1,0 +1,791 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V8.50.9.278/W32 for ARM         22/Dec/2020  15:58:29
+# Copyright 1999-2020 IAR Systems AB.
+#
+#    Cpu mode             
+#    Endian            =  little
+#    Source file       =  D:\Programming\TermProject2\user\main.c
+#    Command line      =
+#        -f C:\Users\ziop2\AppData\Local\Temp\EWF84.tmp
+#        (D:\Programming\TermProject2\user\main.c -D USE_STDPERIPH_DRIVER -D
+#        STM32F10X_CL -lC D:\Programming\TermProject2\Debug\List -o
+#        D:\Programming\TermProject2\Debug\Obj --no_cse --no_unroll --no_inline
+#        --no_code_motion --no_tbaa --no_clustering --no_scheduling --debug
+#        --endian=little --cpu=Cortex-M3 -e --fpu=None --dlib_config
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\inc\c\DLib_Config_Normal.h" -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\Startup\\ -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\\ -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\\
+#        -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\src\\
+#        -I D:\Programming\TermProject2\user\\ -I
+#        D:\Programming\TermProject2\user\inc\\ -Ol -I "C:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench 8.4\arm\CMSIS\Core\Include\\" -I
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\CMSIS\DSP\Include\\")
+#    Locale            =  C
+#    List file         =  D:\Programming\TermProject2\Debug\List\main.lst
+#    Object file       =  D:\Programming\TermProject2\Debug\Obj\main.o
+#    Runtime model:       
+#      __SystemLibrary =  DLib
+#      __dlib_version  =  6
+#      __size_limit    =  32768|ARM.EW.LINKER
+#
+###############################################################################
+
+D:\Programming\TermProject2\user\main.c
+      1          #include "stm32f10x_HC-SR04.h"
+
+   \                                 In section .text, align 4, keep-with-next
+   \   static __interwork __softfp void __NVIC_EnableIRQ(IRQn_Type)
+   \                     __NVIC_EnableIRQ: (+1)
+   \        0x0   0x0001             MOVS     R1,R0
+   \        0x2   0xB249             SXTB     R1,R1            ;; SignExt  R1,R1,#+24,#+24
+   \        0x4   0x2900             CMP      R1,#+0
+   \        0x6   0xD408             BMI.N    ??__NVIC_EnableIRQ_0
+   \        0x8   0x2201             MOVS     R2,#+1
+   \        0xA   0xF010 0x011F      ANDS     R1,R0,#0x1F
+   \        0xE   0x408A             LSLS     R2,R2,R1
+   \       0x10   0x....             LDR.N    R1,??DataTable5  ;; 0xe000e100
+   \       0x12   0xB240             SXTB     R0,R0            ;; SignExt  R0,R0,#+24,#+24
+   \       0x14   0x0940             LSRS     R0,R0,#+5
+   \       0x16   0xF841 0x2020      STR      R2,[R1, R0, LSL #+2]
+   \                     ??__NVIC_EnableIRQ_0: (+1)
+   \       0x1A   0x4770             BX       LR               ;; return
+      2          #include "lcd.h"
+      3          //#include "QMC5883L.h"
+      4          #include "stm32f10x.h"
+      5          #include "L298N.h"
+      6          #include "FB755AC.h"
+      7          
+      8          #define LCD_TEAM_NAME_X 20
+      9          #define LCD_TEAM_NAME_Y 50
+     10          
+     11          #define LCD_Direction_VAL_X 20
+     12          #define LCD_Direction_VAL_Y 80
+     13          
+     14          #define LCD_BTState_VAL_X 20
+     15          #define LCD_BTState_VAL_Y 100
+     16          
+     17          #define LCD_Distance1_VAL_X 20
+     18          #define LCD_Distance1_VAL_Y 120
+     19          #define LCD_Distance2_VAL_X 20
+     20          #define LCD_Distance2_VAL_Y 140
+     21          
+     22          #define LCD_Heading_VAL_X 20
+     23          #define LCD_Heading_VAL_Y 140
+     24          
+     25          #define ObstacleDistance 250
+     26          
+     27          
+
+   \                                 In section .bss, align 4
+     28          int32_t distance1;
+   \                     distance1:
+   \        0x0                      DS8 4
+
+   \                                 In section .bss, align 4
+     29          int32_t distance2;
+   \                     distance2:
+   \        0x0                      DS8 4
+
+   \                                 In section .bss, align 4
+     30          int32_t heading = 0;
+   \                     heading:
+   \        0x0                      DS8 4
+     31          //void NVIC_Configure(void);
+     32          //void EnableHCSR04PeriphClock();
+     33          
+
+   \                                 In section .data, align 4
+     34          int testTime = 1;
+   \                     testTime:
+   \        0x0   0x0000'0001        DC32 1
+
+   \                                 In section .bss, align 4
+     35          int InitEnd = 0;
+   \                     InitEnd:
+   \        0x0                      DS8 4
+     36          
+
+   \                                 In section .text, align 2, keep-with-next
+     37          void NVIC_Configure(void) {
+   \                     NVIC_Configure: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+     38          
+     39              NVIC_InitTypeDef NVIC_InitStructure;
+     40              // TODO: fill the arg you want
+     41              NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+   \        0x2   0xF44F 0x60A0      MOV      R0,#+1280
+   \        0x6   0x....'....        BL       NVIC_PriorityGroupConfig
+     42          
+     43              NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn; // 5
+   \        0xA   0x2017             MOVS     R0,#+23
+   \        0xC   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     44              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // TODO
+   \       0x10   0x2001             MOVS     R0,#+1
+   \       0x12   0xF88D 0x0001      STRB     R0,[SP, #+1]
+     45              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // TODO
+   \       0x16   0x2000             MOVS     R0,#+0
+   \       0x18   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     46              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+   \       0x1C   0x2001             MOVS     R0,#+1
+   \       0x1E   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     47              NVIC_Init(&NVIC_InitStructure);
+   \       0x22   0x4668             MOV      R0,SP
+   \       0x24   0x....'....        BL       NVIC_Init
+     48          
+     49              NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn; // 5
+   \       0x28   0x2006             MOVS     R0,#+6
+   \       0x2A   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     50              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // TODO
+   \       0x2E   0x2000             MOVS     R0,#+0
+   \       0x30   0xF88D 0x0001      STRB     R0,[SP, #+1]
+     51              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // TODO
+   \       0x34   0x2000             MOVS     R0,#+0
+   \       0x36   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     52              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+   \       0x3A   0x2001             MOVS     R0,#+1
+   \       0x3C   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     53              NVIC_Init(&NVIC_InitStructure);
+   \       0x40   0x4668             MOV      R0,SP
+   \       0x42   0x....'....        BL       NVIC_Init
+     54          
+     55              //@ TIM2 NVIC
+     56              NVIC_EnableIRQ(TIM5_IRQn);
+   \       0x46   0x2032             MOVS     R0,#+50
+   \       0x48   0x....'....        BL       __NVIC_EnableIRQ
+     57              NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn;
+   \       0x4C   0x2032             MOVS     R0,#+50
+   \       0x4E   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     58              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // TODO
+   \       0x52   0x2000             MOVS     R0,#+0
+   \       0x54   0xF88D 0x0001      STRB     R0,[SP, #+1]
+     59              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // TODO
+   \       0x58   0x2000             MOVS     R0,#+0
+   \       0x5A   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     60              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+   \       0x5E   0x2001             MOVS     R0,#+1
+   \       0x60   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     61              NVIC_Init(&NVIC_InitStructure);
+   \       0x64   0x4668             MOV      R0,SP
+   \       0x66   0x....'....        BL       NVIC_Init
+     62          
+     63              // UART2
+     64              NVIC_EnableIRQ(USART2_IRQn);
+   \       0x6A   0x2026             MOVS     R0,#+38
+   \       0x6C   0x....'....        BL       __NVIC_EnableIRQ
+     65              NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+   \       0x70   0x2025             MOVS     R0,#+37
+   \       0x72   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     66              NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; // TODO
+   \       0x76   0x2000             MOVS     R0,#+0
+   \       0x78   0xF88D 0x0001      STRB     R0,[SP, #+1]
+     67              NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1; // TODO
+   \       0x7C   0x2001             MOVS     R0,#+1
+   \       0x7E   0xF88D 0x0002      STRB     R0,[SP, #+2]
+     68              NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+   \       0x82   0x2001             MOVS     R0,#+1
+   \       0x84   0xF88D 0x0003      STRB     R0,[SP, #+3]
+     69              NVIC_Init(&NVIC_InitStructure);
+   \       0x88   0x4668             MOV      R0,SP
+   \       0x8A   0x....'....        BL       NVIC_Init
+     70          }
+   \       0x8E   0xBD01             POP      {R0,PC}          ;; return
+     71          
+
+   \                                 In section .text, align 2, keep-with-next
+     72          void EnableHCSR04PeriphClock() {
+   \                     EnableHCSR04PeriphClock: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+     73              RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+   \        0x2   0x2101             MOVS     R1,#+1
+   \        0x4   0x2004             MOVS     R0,#+4
+   \        0x6   0x....'....        BL       RCC_APB2PeriphClockCmd
+     74              RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+   \        0xA   0x2101             MOVS     R1,#+1
+   \        0xC   0x2008             MOVS     R0,#+8
+   \        0xE   0x....'....        BL       RCC_APB2PeriphClockCmd
+     75              RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+   \       0x12   0x2101             MOVS     R1,#+1
+   \       0x14   0x2010             MOVS     R0,#+16
+   \       0x16   0x....'....        BL       RCC_APB2PeriphClockCmd
+     76              RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+   \       0x1A   0x2101             MOVS     R1,#+1
+   \       0x1C   0x2020             MOVS     R0,#+32
+   \       0x1E   0x....'....        BL       RCC_APB2PeriphClockCmd
+     77              RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+   \       0x22   0x2101             MOVS     R1,#+1
+   \       0x24   0x2040             MOVS     R0,#+64
+   \       0x26   0x....'....        BL       RCC_APB2PeriphClockCmd
+     78              RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+   \       0x2A   0x2101             MOVS     R1,#+1
+   \       0x2C   0x2002             MOVS     R0,#+2
+   \       0x2E   0x....'....        BL       RCC_APB1PeriphClockCmd
+     79              RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+   \       0x32   0x2101             MOVS     R1,#+1
+   \       0x34   0x2004             MOVS     R0,#+4
+   \       0x36   0x....'....        BL       RCC_APB1PeriphClockCmd
+     80              RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+   \       0x3A   0x2101             MOVS     R1,#+1
+   \       0x3C   0x2008             MOVS     R0,#+8
+   \       0x3E   0x....'....        BL       RCC_APB1PeriphClockCmd
+     81              RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+   \       0x42   0x2101             MOVS     R1,#+1
+   \       0x44   0xF45F 0x3000      MOVS     R0,#+131072
+   \       0x48   0x....'....        BL       RCC_APB1PeriphClockCmd
+     82              RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+   \       0x4C   0x2101             MOVS     R1,#+1
+   \       0x4E   0xF44F 0x4080      MOV      R0,#+16384
+   \       0x52   0x....'....        BL       RCC_APB2PeriphClockCmd
+     83              RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+   \       0x56   0x2101             MOVS     R1,#+1
+   \       0x58   0x2001             MOVS     R0,#+1
+   \       0x5A   0x....'....        BL       RCC_APB2PeriphClockCmd
+     84          }
+   \       0x5E   0xBD01             POP      {R0,PC}          ;; return
+     85          
+     86          
+
+   \                                 In section .text, align 2, keep-with-next
+     87          void TIM5_Init() {
+   \                     TIM5_Init: (+1)
+   \        0x0   0xB538             PUSH     {R3-R5,LR}
+   \        0x2   0xB088             SUB      SP,SP,#+32
+     88              RCC_ClocksTypeDef RCC_ClocksStatus;
+     89              RCC_GetClocksFreq(&RCC_ClocksStatus);
+   \        0x4   0xA803             ADD      R0,SP,#+12
+   \        0x6   0x....'....        BL       RCC_GetClocksFreq
+     90              uint16_t prescaler = RCC_ClocksStatus.SYSCLK_Frequency / 1000000 - 1; //1 tick = 1us (1 tick = 0.165mm resolution)
+   \        0xA   0x9803             LDR      R0,[SP, #+12]
+   \        0xC   0x....             LDR.N    R1,??DataTable5_1  ;; 0xf4240
+   \        0xE   0xFBB0 0xF0F1      UDIV     R0,R0,R1
+   \       0x12   0x1E44             SUBS     R4,R0,#+1
+     91              TIM_DeInit(TIM5);
+   \       0x14   0x....             LDR.N    R5,??DataTable5_2  ;; 0x40000c00
+   \       0x16   0x0028             MOVS     R0,R5
+   \       0x18   0x....'....        BL       TIM_DeInit
+     92          
+     93              TIM_TimeBaseInitTypeDef TIM_TimeBase;
+     94              TIM_TimeBase.TIM_Period = (100000 - 1);
+                                               ^
+Warning[Pe069]: integer conversion resulted in truncation
+   \       0x1C   0xF248 0x609F      MOVW     R0,#+34463
+   \       0x20   0xF8AD 0x0004      STRH     R0,[SP, #+4]
+     95              TIM_TimeBase.TIM_Prescaler = prescaler;
+   \       0x24   0xF8AD 0x4000      STRH     R4,[SP, #+0]
+     96              //Clock Division : /1
+     97              TIM_TimeBase.TIM_ClockDivision = 0;
+   \       0x28   0x2000             MOVS     R0,#+0
+   \       0x2A   0xF8AD 0x0006      STRH     R0,[SP, #+6]
+     98              //Clock Count When Rising Edge
+     99              TIM_TimeBase.TIM_CounterMode = TIM_CounterMode_Up;
+   \       0x2E   0x2000             MOVS     R0,#+0
+   \       0x30   0xF8AD 0x0002      STRH     R0,[SP, #+2]
+    100          
+    101              //Init TIM5
+    102              TIM_TimeBaseInit(TIM5, &TIM_TimeBase);
+   \       0x34   0x4669             MOV      R1,SP
+   \       0x36   0x0028             MOVS     R0,R5
+   \       0x38   0x....'....        BL       TIM_TimeBaseInit
+    103              //Set TIM5 prescaler
+    104              TIM_PrescalerConfig(TIM5, prescaler, TIM_PSCReloadMode_Immediate);
+   \       0x3C   0x2201             MOVS     R2,#+1
+   \       0x3E   0x0021             MOVS     R1,R4
+   \       0x40   0xB289             UXTH     R1,R1            ;; ZeroExt  R1,R1,#+16,#+16
+   \       0x42   0x0028             MOVS     R0,R5
+   \       0x44   0x....'....        BL       TIM_PrescalerConfig
+    105              //Ready To use Timer5
+    106              TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
+   \       0x48   0x2201             MOVS     R2,#+1
+   \       0x4A   0x2101             MOVS     R1,#+1
+   \       0x4C   0x0028             MOVS     R0,R5
+   \       0x4E   0x....'....        BL       TIM_ITConfig
+    107          
+    108              //Timer È°¼ºÈ­
+    109              TIM_Cmd(TIM5, ENABLE);
+   \       0x52   0x2101             MOVS     R1,#+1
+   \       0x54   0x0028             MOVS     R0,R5
+   \       0x56   0x....'....        BL       TIM_Cmd
+    110          }
+   \       0x5A   0xB009             ADD      SP,SP,#+36
+   \       0x5C   0xBD30             POP      {R4,R5,PC}       ;; return
+    111          
+
+   \                                 In section .text, align 2, keep-with-next
+    112          void RCCarAction()
+    113          {        
+   \                     RCCarAction: (+1)
+   \        0x0   0xB53E             PUSH     {R1-R5,LR}
+    114                  LCD_ShowNum(LCD_BTState_VAL_X, LCD_BTState_VAL_Y, GetBTState(), 4, BLACK, WHITE);
+   \        0x2   0x....'....        BL       GetBTState
+   \        0x6   0x0002             MOVS     R2,R0
+   \        0x8   0xF64F 0x74FF      MOVW     R4,#+65535
+   \        0xC   0x0020             MOVS     R0,R4
+   \        0xE   0x9001             STR      R0,[SP, #+4]
+   \       0x10   0x2000             MOVS     R0,#+0
+   \       0x12   0x9000             STR      R0,[SP, #+0]
+   \       0x14   0x2304             MOVS     R3,#+4
+   \       0x16   0x2164             MOVS     R1,#+100
+   \       0x18   0x2014             MOVS     R0,#+20
+   \       0x1A   0x....'....        BL       LCD_ShowNum
+    115                  //LCD_ShowNum(LCD_Heading_VAL_X, LCD_Heading_VAL_Y, (int)QMC5883L_GetHeading(), 4, BLACK, WHITE);
+    116                  LCD_ShowNum(LCD_Distance1_VAL_X, LCD_Distance1_VAL_Y, distance1, 4, BLACK, WHITE);
+   \       0x1E   0x....             LDR.N    R5,??DataTable5_3
+   \       0x20   0x0020             MOVS     R0,R4
+   \       0x22   0x9001             STR      R0,[SP, #+4]
+   \       0x24   0x2000             MOVS     R0,#+0
+   \       0x26   0x9000             STR      R0,[SP, #+0]
+   \       0x28   0x2304             MOVS     R3,#+4
+   \       0x2A   0x682A             LDR      R2,[R5, #+0]
+   \       0x2C   0x2178             MOVS     R1,#+120
+   \       0x2E   0x2014             MOVS     R0,#+20
+   \       0x30   0x....'....        BL       LCD_ShowNum
+    117                  //LCD_ShowNum(LCD_Distance2_VAL_X, LCD_Distance2_VAL_Y, distance2, 4, BLACK, WHITE);
+    118                  
+    119          
+    120                  //LCD_ShowNum(LCD_Distance2_VAL_X, LCD_Heading_VAL_Y + 20, testTime, 4, BLACK, WHITE);
+    121                  /*
+    122                  if (distance1 < ObstacleDistance)
+    123                      Moterstop();
+    124                  else{   
+    125                    */
+    126                    uint16_t command = FB755ACGetCommand();
+   \       0x34   0x....'....        BL       FB755ACGetCommand
+    127                    switch(command){
+   \       0x38   0xB280             UXTH     R0,R0            ;; ZeroExt  R0,R0,#+16,#+16
+   \       0x3A   0x2862             CMP      R0,#+98
+   \       0x3C   0xD01D             BEQ.N    ??RCCarAction_0
+   \       0x3E   0x2866             CMP      R0,#+102
+   \       0x40   0xD004             BEQ.N    ??RCCarAction_1
+   \       0x42   0x286C             CMP      R0,#+108
+   \       0x44   0xD023             BEQ.N    ??RCCarAction_2
+   \       0x46   0x2872             CMP      R0,#+114
+   \       0x48   0xD02B             BEQ.N    ??RCCarAction_3
+   \       0x4A   0xE034             B.N      ??RCCarAction_4
+    128                    case 'f':
+    129                      if (distance1 < ObstacleDistance){
+   \                     ??RCCarAction_1: (+1)
+   \       0x4C   0x6828             LDR      R0,[R5, #+0]
+   \       0x4E   0x28FA             CMP      R0,#+250
+   \       0x50   0xDA09             BGE.N    ??RCCarAction_5
+    130                        Moterstop();
+   \       0x52   0x....'....        BL       Moterstop
+    131                        LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Stop     ", BLACK, WHITE);
+   \       0x56   0x9400             STR      R4,[SP, #+0]
+   \       0x58   0x2300             MOVS     R3,#+0
+   \       0x5A   0x....             LDR.N    R2,??DataTable5_4
+   \       0x5C   0x2150             MOVS     R1,#+80
+   \       0x5E   0x2014             MOVS     R0,#+20
+   \       0x60   0x....'....        BL       LCD_ShowString
+   \       0x64   0xE008             B.N      ??RCCarAction_6
+    132                        
+    133                      }
+    134                      else{
+    135                        Moterforward();
+   \                     ??RCCarAction_5: (+1)
+   \       0x66   0x....'....        BL       Moterforward
+    136                        LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Forward", BLACK, WHITE);
+   \       0x6A   0x9400             STR      R4,[SP, #+0]
+   \       0x6C   0x2300             MOVS     R3,#+0
+   \       0x6E   0x....             LDR.N    R2,??DataTable5_5
+   \       0x70   0x2150             MOVS     R1,#+80
+   \       0x72   0x2014             MOVS     R0,#+20
+   \       0x74   0x....'....        BL       LCD_ShowString
+    137                      }
+    138                      break;
+   \                     ??RCCarAction_6: (+1)
+   \       0x78   0xE026             B.N      ??RCCarAction_7
+    139                    case 'b':
+    140                      LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Back   ", BLACK, WHITE);
+   \                     ??RCCarAction_0: (+1)
+   \       0x7A   0x9400             STR      R4,[SP, #+0]
+   \       0x7C   0x2300             MOVS     R3,#+0
+   \       0x7E   0x....             LDR.N    R2,??DataTable5_6
+   \       0x80   0x2150             MOVS     R1,#+80
+   \       0x82   0x2014             MOVS     R0,#+20
+   \       0x84   0x....'....        BL       LCD_ShowString
+    141                      Moterback();
+   \       0x88   0x....'....        BL       Moterback
+    142                      break;
+   \       0x8C   0xE01C             B.N      ??RCCarAction_7
+    143                    case 'l':
+    144                      LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Left   ", BLACK, WHITE);
+   \                     ??RCCarAction_2: (+1)
+   \       0x8E   0x9400             STR      R4,[SP, #+0]
+   \       0x90   0x2300             MOVS     R3,#+0
+   \       0x92   0x....             LDR.N    R2,??DataTable5_7
+   \       0x94   0x2150             MOVS     R1,#+80
+   \       0x96   0x2014             MOVS     R0,#+20
+   \       0x98   0x....'....        BL       LCD_ShowString
+    145                      Moterleft();
+   \       0x9C   0x....'....        BL       Moterleft
+    146                      break;
+   \       0xA0   0xE012             B.N      ??RCCarAction_7
+    147                    case 'r':
+    148                      LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Right  ", BLACK, WHITE);
+   \                     ??RCCarAction_3: (+1)
+   \       0xA2   0x9400             STR      R4,[SP, #+0]
+   \       0xA4   0x2300             MOVS     R3,#+0
+   \       0xA6   0x....             LDR.N    R2,??DataTable5_8
+   \       0xA8   0x2150             MOVS     R1,#+80
+   \       0xAA   0x2014             MOVS     R0,#+20
+   \       0xAC   0x....'....        BL       LCD_ShowString
+    149                      Moterright();
+   \       0xB0   0x....'....        BL       Moterright
+    150                      break;
+   \       0xB4   0xE008             B.N      ??RCCarAction_7
+    151                    default:
+    152                      LCD_ShowString(LCD_Direction_VAL_X, LCD_Direction_VAL_Y, "Stop     ", BLACK, WHITE);
+   \                     ??RCCarAction_4: (+1)
+   \       0xB6   0x9400             STR      R4,[SP, #+0]
+   \       0xB8   0x2300             MOVS     R3,#+0
+   \       0xBA   0x....             LDR.N    R2,??DataTable5_4
+   \       0xBC   0x2150             MOVS     R1,#+80
+   \       0xBE   0x2014             MOVS     R0,#+20
+   \       0xC0   0x....'....        BL       LCD_ShowString
+    153                      Moterstop();        
+   \       0xC4   0x....'....        BL       Moterstop
+    154                    //}
+    155                  }
+    156          }
+   \                     ??RCCarAction_7: (+1)
+   \       0xC8   0xBD37             POP      {R0-R2,R4,R5,PC}  ;; return
+    157          
+
+   \                                 In section .text, align 2, keep-with-next
+    158          void TIM5_IRQHandler() {
+   \                     TIM5_IRQHandler: (+1)
+   \        0x0   0xB510             PUSH     {R4,LR}
+    159              if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
+   \        0x2   0x....             LDR.N    R4,??DataTable5_2  ;; 0x40000c00
+   \        0x4   0x2101             MOVS     R1,#+1
+   \        0x6   0x0020             MOVS     R0,R4
+   \        0x8   0x....'....        BL       TIM_GetITStatus
+   \        0xC   0x2800             CMP      R0,#+0
+   \        0xE   0xD003             BEQ.N    ??TIM5_IRQHandler_0
+    160              {
+    161                TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+   \       0x10   0x2101             MOVS     R1,#+1
+   \       0x12   0x0020             MOVS     R0,R4
+   \       0x14   0x....'....        BL       TIM_ClearITPendingBit
+    162              }
+    163          }
+   \                     ??TIM5_IRQHandler_0: (+1)
+   \       0x18   0xBD10             POP      {R4,PC}          ;; return
+    164          
+
+   \                                 In section .text, align 2, keep-with-next
+    165          void ModuleInit(){
+   \                     ModuleInit: (+1)
+   \        0x0   0xB580             PUSH     {R7,LR}
+    166            
+    167              FB755ACInit();
+   \        0x2   0x....'....        BL       FB755ACInit
+    168              while(GetBTState() < 3) {}
+   \                     ??ModuleInit_0: (+1)
+   \        0x6   0x....'....        BL       GetBTState
+   \        0xA   0x2803             CMP      R0,#+3
+   \        0xC   0xDBFB             BLT.N    ??ModuleInit_0
+    169          
+    170            
+    171            
+    172              /*
+    173              USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+    174              QMC5883L_Initialize();
+    175              while(!QMC5883L_Ready()){}
+    176              USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    177              */
+    178              LCD_ShowString(LCD_TEAM_NAME_X, LCD_TEAM_NAME_Y, "Team09", BLACK, WHITE);
+   \        0xE   0xF64F 0x70FF      MOVW     R0,#+65535
+   \       0x12   0x9000             STR      R0,[SP, #+0]
+   \       0x14   0x2300             MOVS     R3,#+0
+   \       0x16   0x....             LDR.N    R2,??DataTable5_9
+   \       0x18   0x2132             MOVS     R1,#+50
+   \       0x1A   0x2014             MOVS     R0,#+20
+   \       0x1C   0x....'....        BL       LCD_ShowString
+    179              L298NInit();
+   \       0x20   0x....'....        BL       L298NInit
+    180              InitHCSR04(&distance1, &distance2);
+   \       0x24   0x....             LDR.N    R1,??DataTable5_10
+   \       0x26   0x....             LDR.N    R0,??DataTable5_3
+   \       0x28   0x....'....        BL       InitHCSR04
+    181              TIM5_Init();  
+   \       0x2C   0x....'....        BL       TIM5_Init
+    182          }
+   \       0x30   0xBD01             POP      {R0,PC}          ;; return
+    183          
+
+   \                                 In section .text, align 2, keep-with-next
+    184          int main(void) {
+   \                     main: (+1)
+   \        0x0   0xB57C             PUSH     {R2-R6,LR}
+    185              SystemInit();
+   \        0x2   0x....'....        BL       SystemInit
+    186              EnableHCSR04PeriphClock();
+   \        0x6   0x....'....        BL       EnableHCSR04PeriphClock
+    187              NVIC_Configure();
+   \        0xA   0x....'....        BL       NVIC_Configure
+    188              LCD_Init();
+   \        0xE   0x....'....        BL       LCD_Init
+    189              LCD_Clear(RED);
+   \       0x12   0xF44F 0x4078      MOV      R0,#+63488
+   \       0x16   0x....'....        BL       LCD_Clear
+    190              LCD_ShowString(LCD_TEAM_NAME_X, LCD_TEAM_NAME_Y, "Team09", BLACK, WHITE);
+   \       0x1A   0x....             LDR.N    R4,??DataTable5_9
+   \       0x1C   0xF64F 0x75FF      MOVW     R5,#+65535
+   \       0x20   0x0028             MOVS     R0,R5
+   \       0x22   0x9000             STR      R0,[SP, #+0]
+   \       0x24   0x2300             MOVS     R3,#+0
+   \       0x26   0x0022             MOVS     R2,R4
+   \       0x28   0x2132             MOVS     R1,#+50
+   \       0x2A   0x2014             MOVS     R0,#+20
+   \       0x2C   0x....'....        BL       LCD_ShowString
+    191              ModuleInit();
+   \       0x30   0x....'....        BL       ModuleInit
+    192              InitEnd = 1;
+   \       0x34   0x....             LDR.N    R6,??DataTable5_11
+   \       0x36   0x2001             MOVS     R0,#+1
+   \       0x38   0x6030             STR      R0,[R6, #+0]
+    193              
+    194              while (1) {      
+    195                LCD_ShowString(LCD_TEAM_NAME_X, LCD_TEAM_NAME_Y, "Team09", BLACK, WHITE);
+   \                     ??main_0: (+1)
+   \       0x3A   0x0028             MOVS     R0,R5
+   \       0x3C   0x9000             STR      R0,[SP, #+0]
+   \       0x3E   0x2300             MOVS     R3,#+0
+   \       0x40   0x0022             MOVS     R2,R4
+   \       0x42   0x2132             MOVS     R1,#+50
+   \       0x44   0x2014             MOVS     R0,#+20
+   \       0x46   0x....'....        BL       LCD_ShowString
+    196                
+    197                if(InitEnd){           
+   \       0x4A   0x6830             LDR      R0,[R6, #+0]
+   \       0x4C   0x2800             CMP      R0,#+0
+   \       0x4E   0xD0F4             BEQ.N    ??main_0
+    198                  if(GetBTState() == 3){
+   \       0x50   0x....'....        BL       GetBTState
+   \       0x54   0x2803             CMP      R0,#+3
+   \       0x56   0xD1F0             BNE.N    ??main_0
+    199                    RCCarAction();
+   \       0x58   0x....'....        BL       RCCarAction
+   \       0x5C   0xE7ED             B.N      ??main_0
+    200                  }
+    201                }
+    202          
+    203              }
+    204          }
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5:
+   \        0x0   0xE000'E100        DC32     0xe000e100
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_1:
+   \        0x0   0x000F'4240        DC32     0xf4240
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_2:
+   \        0x0   0x4000'0C00        DC32     0x40000c00
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_3:
+   \        0x0   0x....'....        DC32     distance1
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_4:
+   \        0x0   0x....'....        DC32     ?_0
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_5:
+   \        0x0   0x....'....        DC32     ?_1
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_6:
+   \        0x0   0x....'....        DC32     ?_2
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_7:
+   \        0x0   0x....'....        DC32     ?_3
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_8:
+   \        0x0   0x....'....        DC32     ?_4
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_9:
+   \        0x0   0x....'....        DC32     ?_5
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_10:
+   \        0x0   0x....'....        DC32     distance2
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_11:
+   \        0x0   0x....'....        DC32     InitEnd
+
+   \                                 In section .rodata, align 4
+   \                     ?_0:
+   \        0x0   0x53 0x74          DC8 "Stop     "
+
+   \              0x6F 0x70    
+
+   \              0x20 0x20    
+
+   \              0x20 0x20    
+
+   \              0x20 0x00
+   \        0xA                      DS8 2
+
+   \                                 In section .rodata, align 4
+   \                     ?_1:
+   \        0x0   0x46 0x6F          DC8 "Forward"
+
+   \              0x72 0x77    
+
+   \              0x61 0x72    
+
+   \              0x64 0x00
+
+   \                                 In section .rodata, align 4
+   \                     ?_2:
+   \        0x0   0x42 0x61          DC8 "Back   "
+
+   \              0x63 0x6B    
+
+   \              0x20 0x20    
+
+   \              0x20 0x00
+
+   \                                 In section .rodata, align 4
+   \                     ?_3:
+   \        0x0   0x4C 0x65          DC8 "Left   "
+
+   \              0x66 0x74    
+
+   \              0x20 0x20    
+
+   \              0x20 0x00
+
+   \                                 In section .rodata, align 4
+   \                     ?_4:
+   \        0x0   0x52 0x69          DC8 "Right  "
+
+   \              0x67 0x68    
+
+   \              0x74 0x20    
+
+   \              0x20 0x00
+
+   \                                 In section .rodata, align 4
+   \                     ?_5:
+   \        0x0   0x54 0x65          DC8 "Team09"
+
+   \              0x61 0x6D    
+
+   \              0x30 0x39    
+
+   \              0x00
+   \        0x7                      DS8 1
+
+   Maximum stack usage in bytes:
+
+   .cstack Function
+   ------- --------
+       8   EnableHCSR04PeriphClock
+         8   -> RCC_APB1PeriphClockCmd
+         8   -> RCC_APB2PeriphClockCmd
+       8   ModuleInit
+         8   -> FB755ACInit
+         8   -> GetBTState
+         8   -> InitHCSR04
+         8   -> L298NInit
+         8   -> LCD_ShowString
+         8   -> TIM5_Init
+       8   NVIC_Configure
+         8   -> NVIC_Init
+         8   -> NVIC_PriorityGroupConfig
+         8   -> __NVIC_EnableIRQ
+      24   RCCarAction
+        24   -> FB755ACGetCommand
+        24   -> GetBTState
+        24   -> LCD_ShowNum
+        24   -> LCD_ShowString
+        24   -> Moterback
+        24   -> Moterforward
+        24   -> Moterleft
+        24   -> Moterright
+        24   -> Moterstop
+       8   TIM5_IRQHandler
+         8   -> TIM_ClearITPendingBit
+         8   -> TIM_GetITStatus
+      48   TIM5_Init
+        48   -> RCC_GetClocksFreq
+        48   -> TIM_Cmd
+        48   -> TIM_DeInit
+        48   -> TIM_ITConfig
+        48   -> TIM_PrescalerConfig
+        48   -> TIM_TimeBaseInit
+       0   __NVIC_EnableIRQ
+      24   main
+        24   -> EnableHCSR04PeriphClock
+        24   -> GetBTState
+        24   -> LCD_Clear
+        24   -> LCD_Init
+        24   -> LCD_ShowString
+        24   -> ModuleInit
+        24   -> NVIC_Configure
+        24   -> RCCarAction
+        24   -> SystemInit
+
+
+   Section sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ??DataTable5
+       4  ??DataTable5_1
+       4  ??DataTable5_10
+       4  ??DataTable5_11
+       4  ??DataTable5_2
+       4  ??DataTable5_3
+       4  ??DataTable5_4
+       4  ??DataTable5_5
+       4  ??DataTable5_6
+       4  ??DataTable5_7
+       4  ??DataTable5_8
+       4  ??DataTable5_9
+      12  ?_0
+       8  ?_1
+       8  ?_2
+       8  ?_3
+       8  ?_4
+       8  ?_5
+      96  EnableHCSR04PeriphClock
+       4  InitEnd
+      50  ModuleInit
+     144  NVIC_Configure
+     202  RCCarAction
+      26  TIM5_IRQHandler
+      94  TIM5_Init
+      28  __NVIC_EnableIRQ
+       4  distance1
+       4  distance2
+       4  heading
+      94  main
+       4  testTime
+
+ 
+  16 bytes in section .bss
+   4 bytes in section .data
+  52 bytes in section .rodata
+ 782 bytes in section .text
+ 
+ 782 bytes of CODE  memory
+  52 bytes of CONST memory
+  20 bytes of DATA  memory
+
+Errors: none
+Warnings: 1

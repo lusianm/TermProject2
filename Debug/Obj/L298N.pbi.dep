@@ -1,0 +1,39 @@
+L298N.pbi: D:\Programming\TermProject2\user\L298N.c \
+  D:\Programming\TermProject2\user\inc\L298N.h \
+  D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\stm32f10x.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\CMSIS\Core\Include\core_cm3.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\stdint.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\ycheck.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\yvals.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\DLib_Defaults.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\DLib_Config_Normal.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\DLib_Product.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\CMSIS\Core\Include/cmsis_version.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\CMSIS\Core\Include/cmsis_compiler.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\CMSIS\Core\Include\cmsis_iccarm.h \
+  C:\Program\ Files\ (x86)\IAR\ Systems\Embedded\ Workbench\ 8.4\arm\inc\c\iccarm_builtin.h \
+  D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport/system_stm32f10x.h \
+  D:\Programming\TermProject2\user\inc\stm32f10x_conf.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_adc.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_bkp.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_can.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_cec.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_crc.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_dac.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_dbgmcu.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_dma.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_exti.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_flash.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_fsmc.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_gpio.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_i2c.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_iwdg.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_pwr.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_rcc.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_rtc.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_sdio.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_spi.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_tim.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_usart.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\stm32f10x_wwdg.h \
+  D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\misc.h

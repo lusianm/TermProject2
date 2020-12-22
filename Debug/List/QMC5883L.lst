@@ -1,0 +1,963 @@
+###############################################################################
+#
+# IAR ANSI C/C++ Compiler V8.50.9.278/W32 for ARM         21/Dec/2020  20:19:40
+# Copyright 1999-2020 IAR Systems AB.
+#
+#    Cpu mode             
+#    Endian            =  little
+#    Source file       =  D:\Programming\TermProject2\user\QMC5883L.c
+#    Command line      =
+#        -f C:\Users\ziop2\AppData\Local\Temp\EWD9AA.tmp
+#        (D:\Programming\TermProject2\user\QMC5883L.c -D USE_STDPERIPH_DRIVER
+#        -D STM32F10X_CL -lC D:\Programming\TermProject2\Debug\List -o
+#        D:\Programming\TermProject2\Debug\Obj --no_cse --no_unroll --no_inline
+#        --no_code_motion --no_tbaa --no_clustering --no_scheduling --debug
+#        --endian=little --cpu=Cortex-M3 -e --fpu=None --dlib_config
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\inc\c\DLib_Config_Normal.h" -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\Startup\\ -I
+#        D:\Programming\TermProject2\Libraries\CMSIS\DeviceSupport\\ -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\inc\\
+#        -I
+#        D:\Programming\TermProject2\Libraries\STM32F10x_StdPeriph_Driver_v3.5\src\\
+#        -I D:\Programming\TermProject2\user\\ -I
+#        D:\Programming\TermProject2\user\inc\\ -Ol -I "C:\Program Files
+#        (x86)\IAR Systems\Embedded Workbench 8.4\arm\CMSIS\Core\Include\\" -I
+#        "C:\Program Files (x86)\IAR Systems\Embedded Workbench
+#        8.4\arm\CMSIS\DSP\Include\\")
+#    Locale            =  C
+#    List file         =  D:\Programming\TermProject2\Debug\List\QMC5883L.lst
+#    Object file       =  D:\Programming\TermProject2\Debug\Obj\QMC5883L.o
+#    Runtime model:       
+#      __SystemLibrary =  DLib
+#      __dlib_version  =  6
+#      __size_limit    =  32768|ARM.EW.LINKER
+#
+###############################################################################
+
+D:\Programming\TermProject2\user\QMC5883L.c
+      1          //QMC5883L I2C library for ARM STM32F103xx Microcontrollers - Main header file 
+      2          //Has bit, byte and buffer I2C R/W functions
+      3          // 24/05/2012 by Harinadha Reddy Chintalapalli <harinath.ec@gmail.com>
+      4          // Changelog:
+      5          //     2012-05-24 - initial release. Thanks to Jeff Rowberg <jeff@rowberg.net> for his AVR/Arduino
+      6          //                  based development which inspired me & taken as reference to develop this.
+      7          /* ============================================================================================
+      8           QMC5883L device I2C library code for ARM STM32F103xx is placed under the MIT license
+      9           Copyright (c) 2012 Harinadha Reddy Chintalapalli
+     10          
+     11           Permission is hereby granted, free of charge, to any person obtaining a copy
+     12           of this software and associated documentation files (the "Software"), to deal
+     13           in the Software without restriction, including without limitation the rights
+     14           to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     15           copies of the Software, and to permit persons to whom the Software is
+     16           furnished to do so, subject to the following conditions:
+     17          
+     18           The above copyright notice and this permission notice shall be included in
+     19           all copies or substantial portions of the Software.
+     20          
+     21           THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     22           IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     23           FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     24           AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     25           LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     26           OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+     27           THE SOFTWARE.
+     28           ================================================================================================
+     29           */
+     30          #include "QMC5883L.h"
+     31          #include "stm32f10x_i2c.h"
+     32          #include "math.h"
+     33          
+
+   \                                 In section .bss, align 1
+     34          uint8_t QMC5883Lmode;
+   \                     QMC5883Lmode:
+   \        0x0                      DS8 1
+
+   \                                 In section .bss, align 4
+     35          int moduleReady=0;
+   \                     moduleReady:
+   \        0x0                      DS8 4
+     36          
+     37          /** @defgroup QMC5883L_Library
+     38           * @{
+     39           */
+     40          
+     41          /** Power on and prepare for general usage.
+     42           * This will prepare the magnetometer with default settings, ready for single-
+     43           * use mode (very low power requirements). Default settings include 8-sample
+     44           * averaging, 15 Hz data output rate, normal measurement bias, a,d 1090 gain (in
+     45           * terms of LSB/Gauss). Be sure to adjust any settings you need specifically
+     46           * after initialization, especially the gain settings if you happen to be seeing
+     47           * a lot of -4096 values (see the datasheet for mor information).
+     48           */
+     49          
+
+   \                                 In section .text, align 2, keep-with-next
+     50          int QMC5883L_Ready(){
+     51               return moduleReady;
+   \                     QMC5883L_Ready: (+1)
+   \        0x0   0x....'....        LDR.W    R0,??DataTable5
+   \        0x4   0x6800             LDR      R0,[R0, #+0]
+   \        0x6   0x4770             BX       LR               ;; return
+     52          }   
+
+   \                                 In section .text, align 2, keep-with-next
+     53          void QMC5883L_Initialize()
+     54          {       
+   \                     QMC5883L_Initialize: (+1)
+   \        0x0   0xB51C             PUSH     {R2-R4,LR}
+     55              moduleReady = 0;
+   \        0x2   0x....'....        LDR.W    R4,??DataTable5
+   \        0x6   0x2000             MOVS     R0,#+0
+   \        0x8   0x6020             STR      R0,[R4, #+0]
+     56              QMC5883L_I2C_Init();
+   \        0xA   0x....'....        BL       QMC5883L_I2C_Init
+     57              // write CONFIG_A register
+     58          
+     59              uint8_t tmp = QMC5883L_SET_PERIOD_INIT;
+   \        0xE   0x2001             MOVS     R0,#+1
+   \       0x10   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     60              QMC5883L_I2C_ByteWrite(QMC5883L_DEFAULT_ADDRESS, &tmp, QMC5883L_RA_SET_PERIOD);
+   \       0x14   0x220B             MOVS     R2,#+11
+   \       0x16   0x4669             MOV      R1,SP
+   \       0x18   0x201A             MOVS     R0,#+26
+   \       0x1A   0x....'....        BL       QMC5883L_I2C_ByteWrite
+     61          
+     62              //Mode : Continuous, 50Hz, RNG_2G, OSR_512
+     63              tmp = QMC5883L_MODE_CONTINUOUS | QMC5883L_ODR_RATE_50 | QMC5883L_RNG_2G | QMC5883L_OSR_512;
+   \       0x1E   0x2005             MOVS     R0,#+5
+   \       0x20   0xF88D 0x0000      STRB     R0,[SP, #+0]
+     64              QMC5883L_I2C_ByteWrite(QMC5883L_DEFAULT_ADDRESS, &tmp, QMC5883L_RA_CONFIG_A);
+   \       0x24   0x2209             MOVS     R2,#+9
+   \       0x26   0x4669             MOV      R1,SP
+   \       0x28   0x201A             MOVS     R0,#+26
+   \       0x2A   0x....'....        BL       QMC5883L_I2C_ByteWrite
+     65              moduleReady = 1;
+   \       0x2E   0x2001             MOVS     R0,#+1
+   \       0x30   0x6020             STR      R0,[R4, #+0]
+     66          }
+   \       0x32   0xBD13             POP      {R0,R1,R4,PC}    ;; return
+     67          /*
+     68          void QMC5883L_ReadBit(uint8_t slaveAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data)
+     69          {
+     70              uint8_t tmp;
+     71              QMC5883L_I2C_BufferRead(slaveAddr, &tmp, regAddr, 1);
+     72              *data = tmp & (1 << bitNum);
+     73          }
+     74          */
+
+   \                                 In section .text, align 2, keep-with-next
+     75          void QMC5883L_ReadBit(uint8_t slaveAddr, uint8_t regAddr, uint8_t bitNum, uint8_t* data, uint8_t length)
+     76          {
+   \                     QMC5883L_ReadBit: (+1)
+   \        0x0   0xB5FE             PUSH     {R1-R7,LR}
+   \        0x2   0x0005             MOVS     R5,R0
+   \        0x4   0x000E             MOVS     R6,R1
+   \        0x6   0x001F             MOVS     R7,R3
+   \        0x8   0x9C08             LDR      R4,[SP, #+32]
+   \        0xA   0x2208             MOVS     R2,#+8
+   \        0xC   0x2100             MOVS     R1,#+0
+   \        0xE   0x4668             MOV      R0,SP
+   \       0x10   0x....'....        BL       memset
+     77              uint8_t tmp[8] = { 0 };
+     78              QMC5883L_I2C_BufferRead(slaveAddr, tmp, regAddr, length);
+   \       0x14   0x0023             MOVS     R3,R4
+   \       0x16   0xB2DB             UXTB     R3,R3            ;; ZeroExt  R3,R3,#+24,#+24
+   \       0x18   0xB29B             UXTH     R3,R3            ;; ZeroExt  R3,R3,#+16,#+16
+   \       0x1A   0x0032             MOVS     R2,R6
+   \       0x1C   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \       0x1E   0x4669             MOV      R1,SP
+   \       0x20   0x0028             MOVS     R0,R5
+   \       0x22   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x24   0x....'....        BL       QMC5883L_I2C_BufferRead
+     79              int i;
+     80              for(i = 0; i < length; i++)
+   \       0x28   0x2000             MOVS     R0,#+0
+   \       0x2A   0xE003             B.N      ??QMC5883L_ReadBit_0
+     81                  data[i] = tmp[i];
+   \                     ??QMC5883L_ReadBit_1: (+1)
+   \       0x2C   0x4669             MOV      R1,SP
+   \       0x2E   0x5C09             LDRB     R1,[R1, R0]
+   \       0x30   0x5439             STRB     R1,[R7, R0]
+   \       0x32   0x1C40             ADDS     R0,R0,#+1
+   \                     ??QMC5883L_ReadBit_0: (+1)
+   \       0x34   0x0021             MOVS     R1,R4
+   \       0x36   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x38   0x4288             CMP      R0,R1
+   \       0x3A   0xDBF7             BLT.N    ??QMC5883L_ReadBit_1
+     82          }
+   \       0x3C   0xBDF7             POP      {R0-R2,R4-R7,PC}  ;; return
+     83          
+
+   \                                 In section .text, align 2, keep-with-next
+     84          void QMC5883L_GetDATA(s16* dataX, s16* dataY, s16* dataZ)
+     85          {
+   \                     QMC5883L_GetDATA: (+1)
+   \        0x0   0xB57F             PUSH     {R0-R6,LR}
+   \        0x2   0x0006             MOVS     R6,R0
+   \        0x4   0x000C             MOVS     R4,R1
+   \        0x6   0x0015             MOVS     R5,R2
+     86              uint8_t tmp = 0x00;
+   \        0x8   0x2000             MOVS     R0,#+0
+   \        0xA   0xF88D 0x0004      STRB     R0,[SP, #+4]
+     87              QMC5883L_I2C_ByteWrite(QMC5883L_DEFAULT_ADDRESS, &tmp, 0x00);
+   \        0xE   0x2200             MOVS     R2,#+0
+   \       0x10   0xA901             ADD      R1,SP,#+4
+   \       0x12   0x201A             MOVS     R0,#+26
+   \       0x14   0x....'....        BL       QMC5883L_I2C_ByteWrite
+     88              uint8_t data[8];
+     89              QMC5883L_ReadBit(QMC5883L_DEFAULT_ADDRESS, QMC5883L_RA_DATAX_L, 0, data, 8);
+   \       0x18   0x2008             MOVS     R0,#+8
+   \       0x1A   0x9000             STR      R0,[SP, #+0]
+   \       0x1C   0xAB02             ADD      R3,SP,#+8
+   \       0x1E   0x2200             MOVS     R2,#+0
+   \       0x20   0x2100             MOVS     R1,#+0
+   \       0x22   0x201A             MOVS     R0,#+26
+   \       0x24   0x....'....        BL       QMC5883L_ReadBit
+     90              //*dataX = data[0] | (data[1] << 8);
+     91              *dataX = (s16)(data[0] + ((u16)data[1] << 8));
+   \       0x28   0xF89D 0x0008      LDRB     R0,[SP, #+8]
+   \       0x2C   0xF89D 0x1009      LDRB     R1,[SP, #+9]
+   \       0x30   0xEB10 0x2001      ADDS     R0,R0,R1, LSL #+8
+   \       0x34   0x8030             STRH     R0,[R6, #+0]
+     92              *dataY = (s16)(data[2] + ((u16)data[3] << 8));
+   \       0x36   0xF89D 0x000A      LDRB     R0,[SP, #+10]
+   \       0x3A   0xF89D 0x100B      LDRB     R1,[SP, #+11]
+   \       0x3E   0xEB10 0x2001      ADDS     R0,R0,R1, LSL #+8
+   \       0x42   0x8020             STRH     R0,[R4, #+0]
+     93              *dataZ = (s16)(data[4] + ((u16)data[5] << 8));
+   \       0x44   0xF89D 0x000C      LDRB     R0,[SP, #+12]
+   \       0x48   0xF89D 0x100D      LDRB     R1,[SP, #+13]
+   \       0x4C   0xEB10 0x2001      ADDS     R0,R0,R1, LSL #+8
+   \       0x50   0x8028             STRH     R0,[R5, #+0]
+     94          }
+   \       0x52   0xBD7F             POP      {R0-R6,PC}       ;; return
+     95          
+
+   \                                 In section .text, align 2, keep-with-next
+     96          double QMC5883L_GetHeading()
+     97          {
+   \                     QMC5883L_GetHeading: (+1)
+   \        0x0   0xE92D 0x41FF      PUSH     {R0-R8,LR}
+     98              short dataX, dataY;
+     99              uint8_t tmp = 0x00;
+   \        0x4   0x2000             MOVS     R0,#+0
+   \        0x6   0xF88D 0x0004      STRB     R0,[SP, #+4]
+    100              QMC5883L_I2C_ByteWrite(QMC5883L_DEFAULT_ADDRESS, &tmp, 0x00);
+   \        0xA   0x2200             MOVS     R2,#+0
+   \        0xC   0xA901             ADD      R1,SP,#+4
+   \        0xE   0x201A             MOVS     R0,#+26
+   \       0x10   0x....'....        BL       QMC5883L_I2C_ByteWrite
+    101              uint8_t data[8];
+    102              QMC5883L_ReadBit(QMC5883L_DEFAULT_ADDRESS, QMC5883L_RA_DATAX_L, 0, data, 8);
+   \       0x14   0x2008             MOVS     R0,#+8
+   \       0x16   0x9000             STR      R0,[SP, #+0]
+   \       0x18   0xAB02             ADD      R3,SP,#+8
+   \       0x1A   0x2200             MOVS     R2,#+0
+   \       0x1C   0x2100             MOVS     R1,#+0
+   \       0x1E   0x201A             MOVS     R0,#+26
+   \       0x20   0x....'....        BL       QMC5883L_ReadBit
+    103              //*dataX = data[0] | (data[1] << 8);
+    104              dataX = (s16)(data[0] + ((u16)data[1] << 8));
+   \       0x24   0xF89D 0x0008      LDRB     R0,[SP, #+8]
+   \       0x28   0xF89D 0x1009      LDRB     R1,[SP, #+9]
+   \       0x2C   0xEB10 0x2001      ADDS     R0,R0,R1, LSL #+8
+    105              dataY = (s16)(data[2] + ((u16)data[3] << 8));
+   \       0x30   0xF89D 0x800A      LDRB     R8,[SP, #+10]
+   \       0x34   0xF89D 0x100B      LDRB     R1,[SP, #+11]
+   \       0x38   0xEB18 0x2801      ADDS     R8,R8,R1, LSL #+8
+    106              //dataZ = (s16)(data[4] + ((u16)data[5] << 8));
+    107              
+    108              return (atan2(dataY, dataX) * 180.0 / 3.14) + 180.0;  
+   \       0x3C   0x2400             MOVS     R4,#+0
+   \       0x3E   0x....             LDR.N    R5,??DataTable5_1  ;; 0x40668000
+   \       0x40   0xB200             SXTH     R0,R0            ;; SignExt  R0,R0,#+16,#+16
+   \       0x42   0x....'....        BL       __aeabi_i2d
+   \       0x46   0x0002             MOVS     R2,R0
+   \       0x48   0x000B             MOVS     R3,R1
+   \       0x4A   0x0016             MOVS     R6,R2
+   \       0x4C   0x001F             MOVS     R7,R3
+   \       0x4E   0xFA0F 0xF888      SXTH     R8,R8            ;; SignExt  R8,R8,#+16,#+16
+   \       0x52   0x4640             MOV      R0,R8
+   \       0x54   0x....'....        BL       __aeabi_i2d
+   \       0x58   0x0032             MOVS     R2,R6
+   \       0x5A   0x003B             MOVS     R3,R7
+   \       0x5C   0x....'....        BL       atan2
+   \       0x60   0x0022             MOVS     R2,R4
+   \       0x62   0x002B             MOVS     R3,R5
+   \       0x64   0x....'....        BL       __aeabi_dmul
+   \       0x68   0x....             LDR.N    R2,??DataTable5_2  ;; 0x51eb851f
+   \       0x6A   0x....             LDR.N    R3,??DataTable5_3  ;; 0x40091eb8
+   \       0x6C   0x....'....        BL       __aeabi_ddiv
+   \       0x70   0x0022             MOVS     R2,R4
+   \       0x72   0x002B             MOVS     R3,R5
+   \       0x74   0x....'....        BL       __aeabi_dadd
+   \       0x78   0xB004             ADD      SP,SP,#+16
+   \       0x7A   0xE8BD 0x81F0      POP      {R4-R8,PC}       ;; return
+    109          }
+    110          
+    111          
+    112          /*
+    113          void HMC5883L_GetHeading(s16* Mag)
+    114          {
+    115              uint8_t tmpbuff[6] = { 0 };
+    116              HMC5883L_I2C_BufferRead(HMC5883L_DEFAULT_ADDRESS, tmpbuff, HMC5883L_RA_DATAX_H, 6);
+    117          
+    118              uint8_t tmp = HMC5883L_MODE_SINGLE << (HMC5883L_MODEREG_BIT - HMC5883L_MODEREG_LENGTH + 1);
+    119          
+    120              if (HMC5883Lmode == HMC5883L_MODE_SINGLE)
+    121                  HMC5883L_I2C_ByteWrite(HMC5883L_DEFAULT_ADDRESS, &tmp, HMC5883L_RA_MODE);
+    122              for (int i = 0; i < 3; i++)
+    123                  Mag[i] = ((s16) ((u16) tmpbuff[2 * i] << 8) + tmpbuff[2 * i + 1]);
+    124          }
+    125          */
+    126          
+
+   \                                 In section .text, align 2, keep-with-next
+    127          void QMC5883L_WriteBits(uint8_t slaveAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data)
+    128          {
+   \                     QMC5883L_WriteBits: (+1)
+   \        0x0   0xE92D 0x41FC      PUSH     {R2-R8,LR}
+   \        0x4   0x0005             MOVS     R5,R0
+   \        0x6   0x000E             MOVS     R6,R1
+   \        0x8   0x0017             MOVS     R7,R2
+   \        0xA   0x4698             MOV      R8,R3
+   \        0xC   0x9C08             LDR      R4,[SP, #+32]
+    129              uint8_t tmp;
+    130              QMC5883L_I2C_BufferRead(slaveAddr, &tmp, regAddr, 1);
+   \        0xE   0x2301             MOVS     R3,#+1
+   \       0x10   0x0032             MOVS     R2,R6
+   \       0x12   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \       0x14   0x4669             MOV      R1,SP
+   \       0x16   0x0028             MOVS     R0,R5
+   \       0x18   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x1A   0x....'....        BL       QMC5883L_I2C_BufferRead
+    131              uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+   \       0x1E   0x2101             MOVS     R1,#+1
+   \       0x20   0xFA11 0xF108      LSLS     R1,R1,R8
+   \       0x24   0x1E49             SUBS     R1,R1,#+1
+   \       0x26   0xEBB7 0x0008      SUBS     R0,R7,R8
+   \       0x2A   0x1C40             ADDS     R0,R0,#+1
+   \       0x2C   0xFA11 0xF000      LSLS     R0,R1,R0
+    132              data <<= (bitStart - length + 1); // shift data into correct position
+   \       0x30   0xEBB7 0x0708      SUBS     R7,R7,R8
+   \       0x34   0x1C7F             ADDS     R7,R7,#+1
+   \       0x36   0xFA14 0xF707      LSLS     R7,R4,R7
+    133              data &= mask; // zero all non-important bits in data
+   \       0x3A   0x4007             ANDS     R7,R0,R7
+    134              tmp &= ~(mask); // zero all important bits in existing byte
+   \       0x3C   0xF89D 0x1000      LDRB     R1,[SP, #+0]
+   \       0x40   0xEA31 0x0000      BICS     R0,R1,R0
+   \       0x44   0xF88D 0x0000      STRB     R0,[SP, #+0]
+    135              tmp |= data; // combine data with existing byte
+   \       0x48   0xF89D 0x0000      LDRB     R0,[SP, #+0]
+   \       0x4C   0x4307             ORRS     R7,R7,R0
+   \       0x4E   0xF88D 0x7000      STRB     R7,[SP, #+0]
+    136              QMC5883L_I2C_ByteWrite(slaveAddr, &tmp, regAddr);
+   \       0x52   0x0032             MOVS     R2,R6
+   \       0x54   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \       0x56   0x4669             MOV      R1,SP
+   \       0x58   0x0028             MOVS     R0,R5
+   \       0x5A   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x5C   0x....'....        BL       QMC5883L_I2C_ByteWrite
+    137          }
+   \       0x60   0xE8BD 0x81F3      POP      {R0,R1,R4-R8,PC}  ;; return
+    138          
+    139          /** write a single bit in an 8-bit device register.
+    140           * @param slaveAddr I2C slave device address
+    141           * @param regAddr Register regAddr to write to
+    142           * @param bitNum Bit position to write (0-7)
+    143           * @param value New bit value to write
+    144           */
+
+   \                                 In section .text, align 2, keep-with-next
+    145          void QMC5883L_WriteBit(uint8_t slaveAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data)
+    146          {
+   \                     QMC5883L_WriteBit: (+1)
+   \        0x0   0xB5F8             PUSH     {R3-R7,LR}
+   \        0x2   0x0005             MOVS     R5,R0
+   \        0x4   0x000E             MOVS     R6,R1
+   \        0x6   0x0017             MOVS     R7,R2
+   \        0x8   0x001C             MOVS     R4,R3
+    147              uint8_t tmp;
+    148              QMC5883L_I2C_BufferRead(slaveAddr, &tmp, regAddr, 1);
+   \        0xA   0x2301             MOVS     R3,#+1
+   \        0xC   0x0032             MOVS     R2,R6
+   \        0xE   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \       0x10   0x4669             MOV      R1,SP
+   \       0x12   0x0028             MOVS     R0,R5
+   \       0x14   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x16   0x....'....        BL       QMC5883L_I2C_BufferRead
+    149              tmp = (data != 0) ? (tmp | (1 << bitNum)) : (tmp & ~(1 << bitNum));
+   \       0x1A   0xB2E4             UXTB     R4,R4            ;; ZeroExt  R4,R4,#+24,#+24
+   \       0x1C   0x2C00             CMP      R4,#+0
+   \       0x1E   0xD008             BEQ.N    ??QMC5883L_WriteBit_0
+   \       0x20   0xF89D 0x0000      LDRB     R0,[SP, #+0]
+   \       0x24   0x2101             MOVS     R1,#+1
+   \       0x26   0xFA11 0xF707      LSLS     R7,R1,R7
+   \       0x2A   0x4307             ORRS     R7,R7,R0
+   \       0x2C   0xF88D 0x7000      STRB     R7,[SP, #+0]
+   \       0x30   0xE008             B.N      ??QMC5883L_WriteBit_1
+   \                     ??QMC5883L_WriteBit_0: (+1)
+   \       0x32   0xF89D 0x0000      LDRB     R0,[SP, #+0]
+   \       0x36   0x2101             MOVS     R1,#+1
+   \       0x38   0xFA11 0xF707      LSLS     R7,R1,R7
+   \       0x3C   0xEA30 0x0707      BICS     R7,R0,R7
+   \       0x40   0xF88D 0x7000      STRB     R7,[SP, #+0]
+    150              QMC5883L_I2C_ByteWrite(slaveAddr, &tmp, regAddr);
+   \                     ??QMC5883L_WriteBit_1: (+1)
+   \       0x44   0x0032             MOVS     R2,R6
+   \       0x46   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \       0x48   0x4669             MOV      R1,SP
+   \       0x4A   0x0028             MOVS     R0,R5
+   \       0x4C   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x4E   0x....'....        BL       QMC5883L_I2C_ByteWrite
+    151          }
+   \       0x52   0xBDF1             POP      {R0,R4-R7,PC}    ;; return
+    152          
+    153          /** Read multiple bits from an 8-bit device register.
+    154           * @param slaveAddr I2C slave device address
+    155           * @param regAddr Register regAddr to read from
+    156           * @param bitStart First bit position to read (0-7)
+    157           * @param length Number of bits to read (not more than 8)
+    158           * @param data Container for right-aligned value (i.e. '101' read from any bitStart position will equal 0x05)
+    159           * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in readTimeout)
+    160           */
+
+   \                                 In section .text, align 2, keep-with-next
+    161          void QMC5883L_ReadBits(uint8_t slaveAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data)
+    162          {
+   \                     QMC5883L_ReadBits: (+1)
+   \        0x0   0xB57C             PUSH     {R2-R6,LR}
+   \        0x2   0x0015             MOVS     R5,R2
+   \        0x4   0x001E             MOVS     R6,R3
+   \        0x6   0x9C06             LDR      R4,[SP, #+24]
+    163              uint8_t tmp;
+    164              QMC5883L_I2C_BufferRead(slaveAddr, &tmp, regAddr, 1);
+   \        0x8   0x2301             MOVS     R3,#+1
+   \        0xA   0x000A             MOVS     R2,R1
+   \        0xC   0xB2D2             UXTB     R2,R2            ;; ZeroExt  R2,R2,#+24,#+24
+   \        0xE   0x4669             MOV      R1,SP
+   \       0x10   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x12   0x....'....        BL       QMC5883L_I2C_BufferRead
+    165              uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+   \       0x16   0x2101             MOVS     R1,#+1
+   \       0x18   0x40B1             LSLS     R1,R1,R6
+   \       0x1A   0x1E49             SUBS     R1,R1,#+1
+   \       0x1C   0x1BA8             SUBS     R0,R5,R6
+   \       0x1E   0x1C40             ADDS     R0,R0,#+1
+   \       0x20   0xFA11 0xF000      LSLS     R0,R1,R0
+    166              tmp &= mask;
+   \       0x24   0xF89D 0x1000      LDRB     R1,[SP, #+0]
+   \       0x28   0x4008             ANDS     R0,R0,R1
+   \       0x2A   0xF88D 0x0000      STRB     R0,[SP, #+0]
+    167              tmp >>= (bitStart - length + 1);
+   \       0x2E   0xF89D 0x0000      LDRB     R0,[SP, #+0]
+   \       0x32   0x1BAD             SUBS     R5,R5,R6
+   \       0x34   0x1C6D             ADDS     R5,R5,#+1
+   \       0x36   0xB2C0             UXTB     R0,R0            ;; ZeroExt  R0,R0,#+24,#+24
+   \       0x38   0x40E8             LSRS     R0,R0,R5
+   \       0x3A   0xF88D 0x0000      STRB     R0,[SP, #+0]
+    168              *data = tmp;
+   \       0x3E   0xF89D 0x0000      LDRB     R0,[SP, #+0]
+   \       0x42   0x7020             STRB     R0,[R4, #+0]
+    169          }
+   \       0x44   0xBD73             POP      {R0,R1,R4-R6,PC}  ;; return
+    170          
+    171          /** Read a single bit from an 8-bit device register.
+    172           * @param slaveAddr I2C slave device address
+    173           * @param regAddr Register regAddr to read from
+    174           * @param bitNum Bit position to read (0-7)
+    175           * @param data Container for single bit value
+    176           * @param timeout Optional read timeout in milliseconds (0 to disable, leave off to use default class value in readTimeout)
+    177           */
+    178          
+    179          /**
+    180           * @brief  Initializes the I2C peripheral used to drive the QMC5883L
+    181           * @param  None
+    182           * @retval None
+    183           */
+
+   \                                 In section .text, align 2, keep-with-next
+    184          void QMC5883L_I2C_Init()
+    185          {
+   \                     QMC5883L_I2C_Init: (+1)
+   \        0x0   0xB518             PUSH     {R3,R4,LR}
+   \        0x2   0xB085             SUB      SP,SP,#+20
+    186              I2C_InitTypeDef I2C_InitStructure;
+    187              GPIO_InitTypeDef GPIO_InitStructure;
+    188          
+    189              /* Enable I2C and GPIO clocks */
+    190              RCC_APB1PeriphClockCmd(QMC5883L_I2C_RCC_Periph, ENABLE);
+   \        0x4   0x2101             MOVS     R1,#+1
+   \        0x6   0xF45F 0x0080      MOVS     R0,#+4194304
+   \        0xA   0x....'....        BL       RCC_APB1PeriphClockCmd
+    191              RCC_APB2PeriphClockCmd(QMC5883L_I2C_RCC_Port, ENABLE);
+   \        0xE   0x2101             MOVS     R1,#+1
+   \       0x10   0x2008             MOVS     R0,#+8
+   \       0x12   0x....'....        BL       RCC_APB2PeriphClockCmd
+    192          
+    193              /* Configure I2C pins: SCL and SDA */
+    194              GPIO_InitStructure.GPIO_Pin = QMC5883L_I2C_SCL_Pin | QMC5883L_I2C_SDA_Pin;
+   \       0x16   0xF44F 0x6040      MOV      R0,#+3072
+   \       0x1A   0xF8AD 0x0000      STRH     R0,[SP, #+0]
+    195              GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   \       0x1E   0x2003             MOVS     R0,#+3
+   \       0x20   0xF88D 0x0002      STRB     R0,[SP, #+2]
+    196              GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+   \       0x24   0x201C             MOVS     R0,#+28
+   \       0x26   0xF88D 0x0003      STRB     R0,[SP, #+3]
+    197              GPIO_Init(QMC5883L_I2C_Port, &GPIO_InitStructure);
+   \       0x2A   0x4669             MOV      R1,SP
+   \       0x2C   0x....             LDR.N    R0,??DataTable5_4  ;; 0x40010c00
+   \       0x2E   0x....'....        BL       GPIO_Init
+    198          
+    199              /* I2C configuration */
+    200              I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
+   \       0x32   0x2000             MOVS     R0,#+0
+   \       0x34   0xF8AD 0x0008      STRH     R0,[SP, #+8]
+    201              I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
+   \       0x38   0xF64B 0x70FF      MOVW     R0,#+49151
+   \       0x3C   0xF8AD 0x000A      STRH     R0,[SP, #+10]
+    202              I2C_InitStructure.I2C_OwnAddress1 = QMC5883L_DEFAULT_ADDRESS; // QMC5883L 7-bit adress = 0x1E;
+   \       0x40   0x201A             MOVS     R0,#+26
+   \       0x42   0xF8AD 0x000C      STRH     R0,[SP, #+12]
+    203              I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
+   \       0x46   0xF44F 0x6080      MOV      R0,#+1024
+   \       0x4A   0xF8AD 0x000E      STRH     R0,[SP, #+14]
+    204              I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+   \       0x4E   0xF44F 0x4080      MOV      R0,#+16384
+   \       0x52   0xF8AD 0x0010      STRH     R0,[SP, #+16]
+    205              I2C_InitStructure.I2C_ClockSpeed = QMC5883L_I2C_Speed;
+   \       0x56   0xF24C 0x3050      MOVW     R0,#+50000
+   \       0x5A   0x9001             STR      R0,[SP, #+4]
+    206          
+    207              /* Apply I2C configuration after enabling it */
+    208              I2C_Init(QMC5883L_I2C, &I2C_InitStructure);
+   \       0x5C   0x....             LDR.N    R4,??DataTable5_5  ;; 0x40005800
+   \       0x5E   0xA901             ADD      R1,SP,#+4
+   \       0x60   0x0020             MOVS     R0,R4
+   \       0x62   0x....'....        BL       I2C_Init
+    209          
+    210              I2C_Cmd(QMC5883L_I2C, ENABLE);
+   \       0x66   0x2101             MOVS     R1,#+1
+   \       0x68   0x0020             MOVS     R0,R4
+   \       0x6A   0x....'....        BL       I2C_Cmd
+    211          }
+   \       0x6E   0xB006             ADD      SP,SP,#+24
+   \       0x70   0xBD10             POP      {R4,PC}          ;; return
+    212          
+    213          /**
+    214           * @brief  Writes one byte to the  QMC5883L.
+    215           * @param  slaveAddr : slave address QMC5883L_DEFAULT_ADDRESS
+    216           * @param  pBuffer : pointer to the buffer  containing the data to be written to the QMC5883L.
+    217           * @param  WriteAddr : address of the register in which the data will be written
+    218           * @retval None
+    219           */
+
+   \                                 In section .text, align 2, keep-with-next
+    220          void QMC5883L_I2C_ByteWrite(u8 slaveAddr, u8* pBuffer, u8 WriteAddr)
+    221          {
+   \                     QMC5883L_I2C_ByteWrite: (+1)
+   \        0x0   0xB5F8             PUSH     {R3-R7,LR}
+   \        0x2   0x0004             MOVS     R4,R0
+   \        0x4   0x000D             MOVS     R5,R1
+   \        0x6   0x0016             MOVS     R6,R2
+    222              // ENTR_CRT_SECTION();
+    223          
+    224              /* Send START condition */
+    225              I2C_GenerateSTART(QMC5883L_I2C, ENABLE);
+   \        0x8   0x....             LDR.N    R7,??DataTable5_5  ;; 0x40005800
+   \        0xA   0x2101             MOVS     R1,#+1
+   \        0xC   0x0038             MOVS     R0,R7
+   \        0xE   0x....'....        BL       I2C_GenerateSTART
+    226          
+    227              /* Test on EV5 and clear it */
+    228              
+    229              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+   \                     ??QMC5883L_I2C_ByteWrite_0: (+1)
+   \       0x12   0x....             LDR.N    R1,??DataTable5_6  ;; 0x30001
+   \       0x14   0x0038             MOVS     R0,R7
+   \       0x16   0x....'....        BL       I2C_CheckEvent
+   \       0x1A   0x2800             CMP      R0,#+0
+   \       0x1C   0xD0F9             BEQ.N    ??QMC5883L_I2C_ByteWrite_0
+    230              
+    231              /* Send HMC5883 address for write */
+    232              I2C_Send7bitAddress(QMC5883L_I2C, slaveAddr, I2C_Direction_Transmitter);
+   \       0x1E   0x2200             MOVS     R2,#+0
+   \       0x20   0x0021             MOVS     R1,R4
+   \       0x22   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x24   0x0038             MOVS     R0,R7
+   \       0x26   0x....'....        BL       I2C_Send7bitAddress
+    233          
+    234              /* Test on EV6 and clear it */
+    235              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+   \                     ??QMC5883L_I2C_ByteWrite_1: (+1)
+   \       0x2A   0x....             LDR.N    R1,??DataTable5_7  ;; 0x70082
+   \       0x2C   0x0038             MOVS     R0,R7
+   \       0x2E   0x....'....        BL       I2C_CheckEvent
+   \       0x32   0x2800             CMP      R0,#+0
+   \       0x34   0xD0F9             BEQ.N    ??QMC5883L_I2C_ByteWrite_1
+    236              /* Send the QMC5883L internal address to write to */
+    237              I2C_SendData(QMC5883L_I2C, WriteAddr);
+   \       0x36   0x0031             MOVS     R1,R6
+   \       0x38   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x3A   0x0038             MOVS     R0,R7
+   \       0x3C   0x....'....        BL       I2C_SendData
+    238          
+    239              /* Test on EV8 and clear it */
+    240              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+   \                     ??QMC5883L_I2C_ByteWrite_2: (+1)
+   \       0x40   0x....             LDR.N    R4,??DataTable5_8  ;; 0x70084
+   \       0x42   0x0021             MOVS     R1,R4
+   \       0x44   0x0038             MOVS     R0,R7
+   \       0x46   0x....'....        BL       I2C_CheckEvent
+   \       0x4A   0x2800             CMP      R0,#+0
+   \       0x4C   0xD0F8             BEQ.N    ??QMC5883L_I2C_ByteWrite_2
+    241              
+    242              /* Send the byte to be written */
+    243              I2C_SendData(QMC5883L_I2C, *pBuffer);
+   \       0x4E   0x7829             LDRB     R1,[R5, #+0]
+   \       0x50   0x0038             MOVS     R0,R7
+   \       0x52   0x....'....        BL       I2C_SendData
+    244          
+    245              /* Test on EV8 and clear it */
+    246              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+   \                     ??QMC5883L_I2C_ByteWrite_3: (+1)
+   \       0x56   0x0021             MOVS     R1,R4
+   \       0x58   0x0038             MOVS     R0,R7
+   \       0x5A   0x....'....        BL       I2C_CheckEvent
+   \       0x5E   0x2800             CMP      R0,#+0
+   \       0x60   0xD0F9             BEQ.N    ??QMC5883L_I2C_ByteWrite_3
+    247              
+    248              /* Send STOP condition */
+    249              I2C_GenerateSTOP(QMC5883L_I2C, ENABLE);
+   \       0x62   0x2101             MOVS     R1,#+1
+   \       0x64   0x0038             MOVS     R0,R7
+   \       0x66   0x....'....        BL       I2C_GenerateSTOP
+    250              // EXT_CRT_SECTION();
+    251          }
+   \       0x6A   0xBDF1             POP      {R0,R4-R7,PC}    ;; return
+    252          
+    253          /**
+    254           * @brief  Reads a block of data from the QMC5883L.
+    255           * @param  slaveAddr  : slave address QMC5883L_DEFAULT_ADDRESS
+    256           * @param  pBuffer : pointer to the buffer that receives the data read from the QMC5883L.
+    257           * @param  ReadAddr : QMC5883L's internal address to read from.
+    258           * @param  NumByteToRead : number of bytes to read from the QMC5883L ( NumByteToRead >1  only for the Magnetometer reading).
+    259           * @retval None
+    260           */
+
+   \                                 In section .text, align 2, keep-with-next
+    261          void QMC5883L_I2C_BufferRead(u8 slaveAddr, u8* pBuffer, u8 ReadAddr, u16 NumByteToRead)
+    262          {
+   \                     QMC5883L_I2C_BufferRead: (+1)
+   \        0x0   0xE92D 0x43F8      PUSH     {R3-R9,LR}
+   \        0x4   0x0004             MOVS     R4,R0
+   \        0x6   0x000D             MOVS     R5,R1
+   \        0x8   0x0016             MOVS     R6,R2
+   \        0xA   0x001F             MOVS     R7,R3
+    263              // ENTR_CRT_SECTION();
+    264          
+    265              /* While the bus is busy */
+    266              while (I2C_GetFlagStatus(QMC5883L_I2C, I2C_FLAG_BUSY));
+   \                     ??QMC5883L_I2C_BufferRead_0: (+1)
+   \        0xC   0x....'....        LDR.W    R8,??DataTable5_5  ;; 0x40005800
+   \       0x10   0xF45F 0x3100      MOVS     R1,#+131072
+   \       0x14   0x4640             MOV      R0,R8
+   \       0x16   0x....'....        BL       I2C_GetFlagStatus
+   \       0x1A   0x2800             CMP      R0,#+0
+   \       0x1C   0xD1F6             BNE.N    ??QMC5883L_I2C_BufferRead_0
+    267              
+    268              /* Send START condition */
+    269              I2C_GenerateSTART(QMC5883L_I2C, ENABLE);
+   \       0x1E   0x2101             MOVS     R1,#+1
+   \       0x20   0x4640             MOV      R0,R8
+   \       0x22   0x....'....        BL       I2C_GenerateSTART
+    270          
+    271              /* Test on EV5 and clear it */
+    272              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+   \                     ??QMC5883L_I2C_BufferRead_1: (+1)
+   \       0x26   0x....'....        LDR.W    R9,??DataTable5_6  ;; 0x30001
+   \       0x2A   0x4649             MOV      R1,R9
+   \       0x2C   0x4640             MOV      R0,R8
+   \       0x2E   0x....'....        BL       I2C_CheckEvent
+   \       0x32   0x2800             CMP      R0,#+0
+   \       0x34   0xD0F7             BEQ.N    ??QMC5883L_I2C_BufferRead_1
+    273              
+    274              /* Send QMC5883L_Magn address for write */ // Send QMC5883L address for write
+    275              I2C_Send7bitAddress(QMC5883L_I2C, slaveAddr, I2C_Direction_Transmitter);
+   \       0x36   0x2200             MOVS     R2,#+0
+   \       0x38   0x0021             MOVS     R1,R4
+   \       0x3A   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x3C   0x4640             MOV      R0,R8
+   \       0x3E   0x....'....        BL       I2C_Send7bitAddress
+    276          
+    277              /* Test on EV6 and clear it */
+    278              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+   \                     ??QMC5883L_I2C_BufferRead_2: (+1)
+   \       0x42   0x....             LDR.N    R1,??DataTable5_7  ;; 0x70082
+   \       0x44   0x4640             MOV      R0,R8
+   \       0x46   0x....'....        BL       I2C_CheckEvent
+   \       0x4A   0x2800             CMP      R0,#+0
+   \       0x4C   0xD0F9             BEQ.N    ??QMC5883L_I2C_BufferRead_2
+    279              
+    280              /* Clear EV6 by setting again the PE bit */
+    281              I2C_Cmd(QMC5883L_I2C, ENABLE);
+   \       0x4E   0x2101             MOVS     R1,#+1
+   \       0x50   0x4640             MOV      R0,R8
+   \       0x52   0x....'....        BL       I2C_Cmd
+    282          
+    283              /* Send the QMC5883L's internal address to write to */
+    284              I2C_SendData(QMC5883L_I2C, ReadAddr);
+   \       0x56   0x0031             MOVS     R1,R6
+   \       0x58   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x5A   0x4640             MOV      R0,R8
+   \       0x5C   0x....'....        BL       I2C_SendData
+    285          
+    286              /* Test on EV8 and clear it */
+    287              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+   \                     ??QMC5883L_I2C_BufferRead_3: (+1)
+   \       0x60   0x....             LDR.N    R1,??DataTable5_8  ;; 0x70084
+   \       0x62   0x4640             MOV      R0,R8
+   \       0x64   0x....'....        BL       I2C_CheckEvent
+   \       0x68   0x2800             CMP      R0,#+0
+   \       0x6A   0xD0F9             BEQ.N    ??QMC5883L_I2C_BufferRead_3
+    288              
+    289              /* Send STRAT condition a second time */
+    290              I2C_GenerateSTART(QMC5883L_I2C, ENABLE);
+   \       0x6C   0x2101             MOVS     R1,#+1
+   \       0x6E   0x4640             MOV      R0,R8
+   \       0x70   0x....'....        BL       I2C_GenerateSTART
+    291          
+    292              /* Test on EV5 and clear it */
+    293              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+   \                     ??QMC5883L_I2C_BufferRead_4: (+1)
+   \       0x74   0x4649             MOV      R1,R9
+   \       0x76   0x4640             MOV      R0,R8
+   \       0x78   0x....'....        BL       I2C_CheckEvent
+   \       0x7C   0x2800             CMP      R0,#+0
+   \       0x7E   0xD0F9             BEQ.N    ??QMC5883L_I2C_BufferRead_4
+    294              
+    295              /* Send QMC5883L address for read */
+    296              I2C_Send7bitAddress(QMC5883L_I2C, slaveAddr, I2C_Direction_Receiver);
+   \       0x80   0x2201             MOVS     R2,#+1
+   \       0x82   0x0021             MOVS     R1,R4
+   \       0x84   0xB2C9             UXTB     R1,R1            ;; ZeroExt  R1,R1,#+24,#+24
+   \       0x86   0x4640             MOV      R0,R8
+   \       0x88   0x....'....        BL       I2C_Send7bitAddress
+    297          
+    298              /* Test on EV6 and clear it */
+    299              while (!I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
+   \                     ??QMC5883L_I2C_BufferRead_5: (+1)
+   \       0x8C   0x....             LDR.N    R1,??DataTable5_9  ;; 0x30002
+   \       0x8E   0x4640             MOV      R0,R8
+   \       0x90   0x....'....        BL       I2C_CheckEvent
+   \       0x94   0x2800             CMP      R0,#+0
+   \       0x96   0xD0F9             BEQ.N    ??QMC5883L_I2C_BufferRead_5
+    300              
+    301              /* While there is data to be read */
+    302              while (NumByteToRead)
+   \                     ??QMC5883L_I2C_BufferRead_6: (+1)
+   \       0x98   0x0038             MOVS     R0,R7
+   \       0x9A   0xB280             UXTH     R0,R0            ;; ZeroExt  R0,R0,#+16,#+16
+   \       0x9C   0x2800             CMP      R0,#+0
+   \       0x9E   0xD018             BEQ.N    ??QMC5883L_I2C_BufferRead_7
+    303              {
+    304                  if (NumByteToRead == 1)
+   \       0xA0   0x0038             MOVS     R0,R7
+   \       0xA2   0xB280             UXTH     R0,R0            ;; ZeroExt  R0,R0,#+16,#+16
+   \       0xA4   0x2801             CMP      R0,#+1
+   \       0xA6   0xD107             BNE.N    ??QMC5883L_I2C_BufferRead_8
+    305                  {
+    306                      /* Disable Acknowledgement */
+    307                      I2C_AcknowledgeConfig(QMC5883L_I2C, DISABLE);
+   \       0xA8   0x2100             MOVS     R1,#+0
+   \       0xAA   0x4640             MOV      R0,R8
+   \       0xAC   0x....'....        BL       I2C_AcknowledgeConfig
+    308          
+    309                      /* Send STOP Condition */
+    310                      I2C_GenerateSTOP(QMC5883L_I2C, ENABLE);
+   \       0xB0   0x2101             MOVS     R1,#+1
+   \       0xB2   0x4640             MOV      R0,R8
+   \       0xB4   0x....'....        BL       I2C_GenerateSTOP
+    311                  }
+    312          
+    313                  /* Test on EV7 and clear it */
+    314                  if (I2C_CheckEvent(QMC5883L_I2C, I2C_EVENT_MASTER_BYTE_RECEIVED))
+   \                     ??QMC5883L_I2C_BufferRead_8: (+1)
+   \       0xB8   0x....             LDR.N    R1,??DataTable5_10  ;; 0x30040
+   \       0xBA   0x4640             MOV      R0,R8
+   \       0xBC   0x....'....        BL       I2C_CheckEvent
+   \       0xC0   0x2800             CMP      R0,#+0
+   \       0xC2   0xD0E9             BEQ.N    ??QMC5883L_I2C_BufferRead_6
+    315                  {
+    316                      /* Read a byte from the QMC5883L */
+    317                      *pBuffer = I2C_ReceiveData(QMC5883L_I2C);
+   \       0xC4   0x4640             MOV      R0,R8
+   \       0xC6   0x....'....        BL       I2C_ReceiveData
+   \       0xCA   0x7028             STRB     R0,[R5, #+0]
+    318          
+    319                      /* Point to the next location where the byte read will be saved */
+    320                      pBuffer++;
+   \       0xCC   0x1C6D             ADDS     R5,R5,#+1
+    321          
+    322                      /* Decrement the read bytes counter */
+    323                      NumByteToRead--;
+   \       0xCE   0x1E7F             SUBS     R7,R7,#+1
+   \       0xD0   0xE7E2             B.N      ??QMC5883L_I2C_BufferRead_6
+    324                  }
+    325              }
+    326          
+    327              /* Enable Acknowledgement to be ready for another reception */
+    328              I2C_AcknowledgeConfig(QMC5883L_I2C, ENABLE);
+   \                     ??QMC5883L_I2C_BufferRead_7: (+1)
+   \       0xD2   0x2101             MOVS     R1,#+1
+   \       0xD4   0x4640             MOV      R0,R8
+   \       0xD6   0x....'....        BL       I2C_AcknowledgeConfig
+    329              // EXT_CRT_SECTION();
+    330          }
+   \       0xDA   0xE8BD 0x83F1      POP      {R0,R4-R9,PC}    ;; return
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5:
+   \        0x0   0x....'....        DC32     moduleReady
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_1:
+   \        0x0   0x4066'8000        DC32     0x40668000
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_2:
+   \        0x0   0x51EB'851F        DC32     0x51eb851f
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_3:
+   \        0x0   0x4009'1EB8        DC32     0x40091eb8
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_4:
+   \        0x0   0x4001'0C00        DC32     0x40010c00
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_5:
+   \        0x0   0x4000'5800        DC32     0x40005800
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_6:
+   \        0x0   0x0003'0001        DC32     0x30001
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_7:
+   \        0x0   0x0007'0082        DC32     0x70082
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_8:
+   \        0x0   0x0007'0084        DC32     0x70084
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_9:
+   \        0x0   0x0003'0002        DC32     0x30002
+
+   \                                 In section .text, align 4, keep-with-next
+   \                     ??DataTable5_10:
+   \        0x0   0x0003'0040        DC32     0x30040
+    331          
+    332          /**
+    333           * @}
+    334           *//* end of group QMC5883L_Library */
+
+   Maximum stack usage in bytes:
+
+   .cstack Function
+   ------- --------
+      32   QMC5883L_GetDATA
+        32   -> QMC5883L_I2C_ByteWrite
+        32   -> QMC5883L_ReadBit
+      40   QMC5883L_GetHeading
+        40   -> QMC5883L_I2C_ByteWrite
+        40   -> QMC5883L_ReadBit
+        40   -> __aeabi_dadd
+        40   -> __aeabi_ddiv
+        40   -> __aeabi_dmul
+        40   -> __aeabi_i2d
+        40   -> atan2
+      32   QMC5883L_I2C_BufferRead
+        32   -> I2C_AcknowledgeConfig
+        32   -> I2C_CheckEvent
+        32   -> I2C_Cmd
+        32   -> I2C_GenerateSTART
+        32   -> I2C_GenerateSTOP
+        32   -> I2C_GetFlagStatus
+        32   -> I2C_ReceiveData
+        32   -> I2C_Send7bitAddress
+        32   -> I2C_SendData
+      24   QMC5883L_I2C_ByteWrite
+        24   -> I2C_CheckEvent
+        24   -> I2C_GenerateSTART
+        24   -> I2C_GenerateSTOP
+        24   -> I2C_Send7bitAddress
+        24   -> I2C_SendData
+      32   QMC5883L_I2C_Init
+        32   -> GPIO_Init
+        32   -> I2C_Cmd
+        32   -> I2C_Init
+        32   -> RCC_APB1PeriphClockCmd
+        32   -> RCC_APB2PeriphClockCmd
+      16   QMC5883L_Initialize
+        16   -> QMC5883L_I2C_ByteWrite
+        16   -> QMC5883L_I2C_Init
+      32   QMC5883L_ReadBit
+        32   -> QMC5883L_I2C_BufferRead
+        32   -> memset
+      24   QMC5883L_ReadBits
+        24   -> QMC5883L_I2C_BufferRead
+       0   QMC5883L_Ready
+      24   QMC5883L_WriteBit
+        24   -> QMC5883L_I2C_BufferRead
+        24   -> QMC5883L_I2C_ByteWrite
+      32   QMC5883L_WriteBits
+        32   -> QMC5883L_I2C_BufferRead
+        32   -> QMC5883L_I2C_ByteWrite
+
+
+   Section sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ??DataTable5
+       4  ??DataTable5_1
+       4  ??DataTable5_10
+       4  ??DataTable5_2
+       4  ??DataTable5_3
+       4  ??DataTable5_4
+       4  ??DataTable5_5
+       4  ??DataTable5_6
+       4  ??DataTable5_7
+       4  ??DataTable5_8
+       4  ??DataTable5_9
+      84  QMC5883L_GetDATA
+     126  QMC5883L_GetHeading
+     222  QMC5883L_I2C_BufferRead
+     108  QMC5883L_I2C_ByteWrite
+     114  QMC5883L_I2C_Init
+      52  QMC5883L_Initialize
+      62  QMC5883L_ReadBit
+      70  QMC5883L_ReadBits
+       8  QMC5883L_Ready
+      84  QMC5883L_WriteBit
+     100  QMC5883L_WriteBits
+       1  QMC5883Lmode
+       4  moduleReady
+
+ 
+     5 bytes in section .bss
+ 1'074 bytes in section .text
+ 
+ 1'074 bytes of CODE memory
+     5 bytes of DATA memory
+
+Errors: none
+Warnings: none
